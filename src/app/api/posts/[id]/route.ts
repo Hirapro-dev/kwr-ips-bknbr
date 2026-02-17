@@ -1,0 +1,69 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/auth";
+
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const numId = parseInt(id);
+
+  if (isNaN(numId)) {
+    const post = await prisma.post.findUnique({ where: { slug: id } });
+    if (!post) return NextResponse.json({ error: "記事が見つかりません" }, { status: 404 });
+    return NextResponse.json(post);
+  }
+
+  const post = await prisma.post.findUnique({ where: { id: numId } });
+  if (!post) return NextResponse.json({ error: "記事が見つかりません" }, { status: 404 });
+  return NextResponse.json(post);
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "未認証" }, { status: 401 });
+
+  const { id } = await params;
+  try {
+    const body = await request.json();
+    const { title, content, excerpt, eyecatch, published, scheduledAt } = body;
+
+    const isScheduled = scheduledAt && new Date(scheduledAt) > new Date();
+
+    const post = await prisma.post.update({
+      where: { id: parseInt(id) },
+      data: {
+        title,
+        content,
+        excerpt: excerpt || content.replace(/<[^>]*>/g, "").slice(0, 200),
+        eyecatch: eyecatch || undefined,
+        published: isScheduled ? false : (published ?? undefined),
+        scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+      },
+    });
+
+    return NextResponse.json(post);
+  } catch {
+    return NextResponse.json({ error: "記事の更新に失敗しました" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "未認証" }, { status: 401 });
+
+  const { id } = await params;
+  try {
+    await prisma.post.delete({ where: { id: parseInt(id) } });
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "記事の削除に失敗しました" }, { status: 500 });
+  }
+}

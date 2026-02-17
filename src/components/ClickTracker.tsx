@@ -1,0 +1,45 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+
+export default function ClickTracker({ postId }: { postId: number }) {
+  const tracked = useRef(false);
+
+  // 閲覧数記録
+  useEffect(() => {
+    if (tracked.current) return;
+    tracked.current = true;
+    fetch("/api/analytics", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ postId }),
+    }).catch(() => {});
+  }, [postId]);
+
+  // リンククリック追跡
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const link = target.closest("a");
+      if (!link) return;
+      const url = link.href;
+      if (!url || url.startsWith("#")) return;
+
+      fetch("/api/clicks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          postId,
+          url,
+          label: link.textContent?.trim().slice(0, 100) || null,
+        }),
+      }).catch(() => {});
+    };
+
+    const content = document.querySelector("[data-article-content]");
+    content?.addEventListener("click", handler as EventListener);
+    return () => content?.removeEventListener("click", handler as EventListener);
+  }, [postId]);
+
+  return null;
+}

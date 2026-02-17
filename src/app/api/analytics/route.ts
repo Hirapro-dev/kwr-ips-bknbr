@@ -1,0 +1,98 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/auth";
+
+// POST: 閲覧数を記録（フロント側から呼び出し）
+export async function POST(request: NextRequest) {
+  try {
+    const { postId } = await request.json();
+    if (!postId) return NextResponse.json({ error: "postId required" }, { status: 400 });
+
+    await prisma.$transaction([
+      prisma.pageView.create({ data: { postId } }),
+      prisma.post.update({ where: { id: postId }, data: { views: { increment: 1 } } }),
+    ]);
+
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "failed" }, { status: 500 });
+  }
+}
+
+// GET: 解析データ取得（管理画面用）
+export async function GET(request: NextRequest) {
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "未認証" }, { status: 401 });
+
+  const { searchParams } = new URL(request.url);
+  const postId = searchParams.get("postId");
+  const period = searchParams.get("period") || "all"; // all, monthly, daily
+
+  try {
+    if (postId) {
+      const id = parseInt(postId);
+      const post = await prisma.post.findUnique({
+        where: { id },
+        select: { id: true, title: true, views: true },
+      });
+
+      let groupBy: "day" | "month" = "day";
+      let dateFilter: Date | undefined;
+
+      if (period === "daily") {
+        dateFilter = new Date();
+        dateFilter.setDate(dateFilter.getDate() - 30);
+      } else if (period === "monthly") {
+        dateFilter = new Date();
+        dateFilter.setMonth(dateFilter.getMonth() - 12);
+        groupBy = "month";
+      }
+
+      const views = await prisma.pageView.findMany({
+        where: {
+          postId: id,
+          ...(dateFilter ? { createdAt: { gte: dateFilter } } : {}),
+        },
+        orderBy: { createdAt: "asc" },
+      });
+
+      const clicks = await prisma.click.findMany({
+        where: {
+          postId: id,
+          ...(dateFilter ? { createdAt: { gte: dateFilter } } : {}),
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      // グループ化
+      const viewsByDate: Record<string, number> = {};
+      views.forEach((v) => {
+        const key = groupBy === "month"
+          ? v.createdAt.toISOString().slice(0, 7)
+          : v.createdAt.toISOString().slice(0, 10);
+        viewsByDate[key] = (viewsByDate[key] || 0) + 1;
+      });
+
+      const clicksByUrl: Record<string, { count: number; label: string | null }> = {};
+      clicks.forEach((c) => {
+        if (!clicksByUrl[c.url]) clicksByUrl[c.url] = { count: 0, label: c.label };
+        clicksByUrl[c.url].count++;
+      });
+
+      return NextResponse.json({ post, viewsByDate, clicksByUrl, totalClicks: clicks.length });
+    }
+
+    // 全体サマリー
+    const posts = await prisma.post.findMany({
+      select: { id: true, title: true, views: true, published: true, createdAt: true, scheduledAt: true },
+      orderBy: { views: "desc" },
+    });
+
+    const totalViews = posts.reduce((sum, p) => sum + p.views, 0);
+    const totalClicks = await prisma.click.count();
+
+    return NextResponse.json({ posts, totalViews, totalClicks });
+  } catch {
+    return NextResponse.json({ error: "解析データの取得に失敗しました" }, { status: 500 });
+  }
+}
