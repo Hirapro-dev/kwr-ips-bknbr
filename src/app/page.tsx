@@ -112,12 +112,26 @@ export default async function Home({
   const params = await searchParams;
   const page = parseInt(params.page || "1");
   const q = params.q?.trim() || undefined;
-  const [data, pickupPosts, recommended, banners] = await Promise.all([
-    getPosts(page, q),
-    getPickupPosts(),
-    getRecommendedForTop(),
-    getBanners(),
-  ]);
+
+  let data: { posts: Post[]; total: number; page: number; totalPages: number };
+  let pickupPosts: Post[];
+  let recommended: Post[];
+  let banners: Banner[];
+
+  try {
+    [data, pickupPosts, recommended, banners] = await Promise.all([
+      getPosts(page, q),
+      getPickupPosts(),
+      getRecommendedForTop(),
+      getBanners(),
+    ]);
+  } catch {
+    // DB接続エラー等で落ちないようフォールバック（Vercel等）
+    data = { posts: [], total: 0, page: 1, totalPages: 0 };
+    pickupPosts = [];
+    recommended = [];
+    banners = [];
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -149,8 +163,8 @@ export default async function Home({
           <div className="lg:flex lg:gap-10">
             {/* メインコンテンツ */}
             <div className="flex-1 min-w-0">
-              {/* PickUp 人気記事（Latest の上） */}
-              {pickupPosts.length > 0 && (
+              {/* PickUp 人気記事（検索時は非表示） */}
+              {!q && pickupPosts.length > 0 && (
                 <section className="pt-8 pb-6 border-b border-black/10">
                   <div className="flex items-baseline gap-3 mb-6">
                     <h2 className="text-2xl md:text-3xl font-black tracking-tight text-black">PickUp</h2>
@@ -164,11 +178,19 @@ export default async function Home({
                 </section>
               )}
 
-              {/* Latest 新着記事 */}
+              {/* Latest 新着記事 / 検索時は「検索：〇〇」 */}
               <section className="pt-8 pb-6">
                 <div className="flex items-baseline gap-3 mb-6">
-                  <h2 className="text-2xl md:text-3xl font-black tracking-tight text-black">Latest</h2>
-                  <p className="text-sm text-black/40">新着記事</p>
+                  {q ? (
+                    <>
+                      <h2 className="text-2xl md:text-3xl font-black tracking-tight text-black">検索：{q}</h2>
+                    </>
+                  ) : (
+                    <>
+                      <h2 className="text-2xl md:text-3xl font-black tracking-tight text-black">Latest</h2>
+                      <p className="text-sm text-black/40">新着記事</p>
+                    </>
+                  )}
                 </div>
 
               {data.posts.length > 0 ? (

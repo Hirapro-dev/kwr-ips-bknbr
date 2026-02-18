@@ -89,7 +89,8 @@ export default function AdminDashboard() {
         body: JSON.stringify({ ...post, isPickup: !post.isPickup }),
       });
       if (res.ok) {
-        setPosts(posts.map((p) => p.id === post.id ? { ...p, isPickup: !p.isPickup } : p));
+        const updated = await res.json();
+        setPosts(posts.map((p) => p.id === post.id ? { ...p, isPickup: updated.isPickup ?? !p.isPickup } : p));
       }
     } catch { alert("更新に失敗しました"); }
   };

@@ -2,6 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 
+/** isPickup カラムがまだないDB用の select（GET/PUT で共通） */
+const selectWithoutPickup = {
+  id: true,
+  title: true,
+  slug: true,
+  content: true,
+  excerpt: true,
+  eyecatch: true,
+  published: true,
+  scheduledAt: true,
+  views: true,
+  writerId: true,
+  createdAt: true,
+  updatedAt: true,
+  writer: true,
+};
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -10,14 +27,27 @@ export async function GET(
   const numId = parseInt(id);
 
   if (isNaN(numId)) {
-    const post = await prisma.post.findUnique({ where: { slug: id }, include: { writer: true } });
-    if (!post) return NextResponse.json({ error: "記事が見つかりません" }, { status: 404 });
-    return NextResponse.json(post);
+    try {
+      const post = await prisma.post.findUnique({ where: { slug: id }, include: { writer: true } });
+      if (!post) return NextResponse.json({ error: "記事が見つかりません" }, { status: 404 });
+      return NextResponse.json(post);
+    } catch {
+      const post = await prisma.post.findUnique({ where: { slug: id }, select: selectWithoutPickup });
+      if (!post) return NextResponse.json({ error: "記事が見つかりません" }, { status: 404 });
+      return NextResponse.json({ ...post, isPickup: false });
+    }
   }
 
-  const post = await prisma.post.findUnique({ where: { id: numId }, include: { writer: true } });
-  if (!post) return NextResponse.json({ error: "記事が見つかりません" }, { status: 404 });
-  return NextResponse.json(post);
+  try {
+    const post = await prisma.post.findUnique({ where: { id: numId }, include: { writer: true } });
+    if (!post) return NextResponse.json({ error: "記事が見つかりません" }, { status: 404 });
+    return NextResponse.json(post);
+  } catch {
+    // isPickup カラムがまだない（マイグレーション未実行）時のフォールバック
+    const post = await prisma.post.findUnique({ where: { id: numId }, select: selectWithoutPickup });
+    if (!post) return NextResponse.json({ error: "記事が見つかりません" }, { status: 404 });
+    return NextResponse.json({ ...post, isPickup: false });
+  }
 }
 
 export async function PUT(
@@ -56,13 +86,24 @@ export async function PUT(
       data.excerpt = excerpt || content.replace(/<[^>]*>/g, "").slice(0, 200);
     } else if (excerpt !== undefined) data.excerpt = excerpt;
 
-    const post = await prisma.post.update({
-      where: { id: parseInt(id) },
-      data,
-      include: { writer: true },
-    });
-
-    return NextResponse.json(post);
+    try {
+      const post = await prisma.post.update({
+        where: { id: parseInt(id) },
+        data,
+        include: { writer: true },
+      });
+      return NextResponse.json(post);
+    } catch {
+      // isPickup カラムがまだない（マイグレーション未実行）時は isPickup を外して再試行
+      const { isPickup: _omit, ...dataWithoutPickup } = data;
+      const post = await prisma.post.update({
+        where: { id: parseInt(id) },
+        data: dataWithoutPickup,
+        select: selectWithoutPickup,
+      });
+      // カラムがなくてもリクエストの isPickup を返し、UIでチェック状態を維持
+      return NextResponse.json({ ...post, isPickup: isPickup !== undefined ? !!isPickup : false });
+    }
   } catch {
     return NextResponse.json({ error: "記事の更新に失敗しました" }, { status: 500 });
   }

@@ -31,7 +31,24 @@ type Post = {
 };
 
 async function getPost(slug: string): Promise<Post | null> {
-  return prisma.post.findUnique({ where: { slug }, include: { writer: true } });
+  try {
+    return await prisma.post.findUnique({ where: { slug }, include: { writer: true } });
+  } catch {
+    // isPickup カラムがまだない（マイグレーション未実行）時のフォールバック
+    const selectWithoutPickup = {
+      id: true,
+      title: true,
+      slug: true,
+      content: true,
+      excerpt: true,
+      eyecatch: true,
+      published: true,
+      createdAt: true,
+      writerId: true,
+      writer: true,
+    };
+    return prisma.post.findUnique({ where: { slug }, select: selectWithoutPickup });
+  }
 }
 
 /** HTMLタグを除去し、比較用テキストを先頭N文字に切り詰める */

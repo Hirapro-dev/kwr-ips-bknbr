@@ -40,6 +40,7 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
   const [writers, setWriters] = useState<Writer[]>([]);
   const [writerId, setWriterId] = useState("");
   const [isPickup, setIsPickup] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const eyecatchInputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +61,8 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
         setTitle(post.title); setContent(post.content); setEyecatch(post.eyecatch || ""); setPublished(post.published); setIsPickup(post.isPickup ?? false);
         if (post.scheduledAt) { setScheduledAt(new Date(post.scheduledAt).toISOString().slice(0, 16)); setShowSchedule(true); }
         if (post.writerId) setWriterId(String(post.writerId));
+      } else {
+        setLoadError(true);
       }
       if (ceRes.ok) setCustomEditors(await ceRes.json());
       if (wRes.ok) setWriters(await wRes.json());
@@ -297,6 +300,18 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
   };
 
   if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><p className="text-slate-400">読み込み中...</p></div>;
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4">
+        <p className="text-slate-600 font-medium">記事の読み込みに失敗しました</p>
+        <p className="text-slate-400 text-sm mt-1">通信エラーや記事が存在しない可能性があります</p>
+        <button onClick={() => router.push("/admin/dashboard")} className="mt-6 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 text-sm font-medium">
+          ダッシュボードに戻る
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
