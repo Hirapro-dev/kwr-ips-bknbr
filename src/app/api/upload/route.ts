@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { uploadToS3 } from "@/lib/s3";
 
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
@@ -30,15 +29,11 @@ export async function POST(request: NextRequest) {
 
     const ext = file.name.split(".").pop() || "jpg";
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
 
-    // uploadsディレクトリがなければ作成
-    await mkdir(uploadDir, { recursive: true });
+    // S3にアップロード
+    const url = await uploadToS3(buffer, filename, file.type);
 
-    const filepath = path.join(uploadDir, filename);
-    await writeFile(filepath, buffer);
-
-    return NextResponse.json({ url: `/uploads/${filename}` });
+    return NextResponse.json({ url });
   } catch {
     return NextResponse.json({ error: "アップロードに失敗しました" }, { status: 500 });
   }

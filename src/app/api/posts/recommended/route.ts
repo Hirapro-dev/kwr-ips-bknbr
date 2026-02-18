@@ -29,8 +29,24 @@ function similarityScore(textA: string, textB: string): number {
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const slug = searchParams.get("slug");
+  const limit = Math.min(10, Math.max(1, parseInt(searchParams.get("limit") || "3")));
+
+  // slug なし＝トップ用：閲覧数順で指定件数返す
   if (!slug) {
-    return NextResponse.json({ error: "slug required" }, { status: 400 });
+    const posts = await prisma.post.findMany({
+      where: { published: true },
+      orderBy: { views: "desc" },
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        eyecatch: true,
+        createdAt: true,
+      },
+    });
+    return NextResponse.json({ posts });
   }
 
   const current = await prisma.post.findUnique({
@@ -65,6 +81,6 @@ export async function GET(request: NextRequest) {
   });
   withScore.sort((a, b) => b.score - a.score);
 
-  const top = withScore.slice(0, 3).map(({ score: _s, ...p }) => p);
+  const top = withScore.slice(0, limit).map(({ score: _s, ...p }) => p);
   return NextResponse.json({ posts: top });
 }

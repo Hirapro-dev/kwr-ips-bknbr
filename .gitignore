@@ -22,7 +22,9 @@
 
 # misc
 .DS_Store
+._*
 *.pem
+firebase-debug.log
 
 # debug
 npm-debug.log*
@@ -32,6 +34,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # local db and uploads (optional: remove if you want to track)
 prisma/*.db

@@ -57,26 +57,10 @@ export default async function PostPage({
       <ClickTracker postId={post.id} />
 
       <main className="flex-1 max-w-3xl mx-auto px-4 sm:px-6 py-10 w-full">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1 text-sm text-black/40 hover:text-black transition-colors mb-8"
-        >
-          <FiArrowLeft size={14} />
-          記事一覧に戻る
-        </Link>
 
         <article>
-          <div className="flex items-center gap-2 text-sm text-black/40 mb-4">
-            <FiCalendar size={14} />
-            <time>{formatDate(post.createdAt)}</time>
-          </div>
-
-          <h1 className="text-2xl md:text-3xl font-black text-black mb-8 leading-tight">
-            {post.title}
-          </h1>
-
           {post.eyecatch && (
-            <div className="aspect-[16/9] relative rounded-sm overflow-hidden mb-10">
+            <div className="aspect-[16/9] relative rounded-sm overflow-hidden mb-8">
               <Image
                 src={post.eyecatch}
                 alt={post.title}
@@ -87,6 +71,17 @@ export default async function PostPage({
               />
             </div>
           )}
+
+          <h1 className="text-2xl md:text-3xl font-black text-black mb-2 leading-tight">
+            {post.title}
+          </h1>
+
+          <div className="flex items-center gap-2 text-sm text-black/40 mb-4">
+            <FiCalendar size={14} />
+            <time>{formatDate(post.createdAt)}</time>
+          </div>
+
+          <hr className="border-0 border-t border-solid my-6" style={{ borderColor: "#eee" }} />
 
           <div className="prose max-w-none" data-article-content>
             {isHtml ? (
@@ -109,6 +104,14 @@ export default async function PostPage({
             </div>
           </section>
         )}
+
+<Link
+          href="/"
+          className="inline-flex items-center gap-1 text-sm text-black/40 hover:text-black transition-colors mb-4"
+        >
+          <FiArrowLeft size={14} />
+          記事一覧に戻る
+        </Link>
       </main>
 
       <Footer />
