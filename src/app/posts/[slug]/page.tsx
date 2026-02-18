@@ -133,13 +133,13 @@ export default async function PostPage({
           <hr className="border-0 border-t border-solid my-6" style={{ borderColor: "#eee" }} />
 
           {post.writer?.avatarUrl && (
-            <div className="flex justify-center mb-8">
+            <div className="mb-8">
               <Image
                 src={post.writer.avatarUrl}
                 alt={post.writer.name}
                 width={230}
                 height={230}
-                className="object-contain w-[100px] md:w-[230px] h-auto"
+                className="object-contain w-[150px] md:w-[230px] h-auto"
               />
             </div>
           )}
