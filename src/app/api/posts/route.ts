@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { title, content, excerpt, eyecatch, published, scheduledAt } = body;
 
-    const slug = generateSlug(title);
+    const slug = generateSlug();
     const isScheduled = scheduledAt && new Date(scheduledAt) > new Date();
 
     const post = await prisma.post.create({
