@@ -127,15 +127,15 @@ export default async function PostPage({
 
           <div className="flex items-center gap-3 text-sm text-black/40 mb-4 flex-wrap">
             {post.writer && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 {post.writer.avatarUrl ? (
-                  <Image src={post.writer.avatarUrl} alt={post.writer.name} width={28} height={28} className="rounded-full object-cover" />
+                  <Image src={post.writer.avatarUrl} alt={post.writer.name} width={44} height={44} className="rounded-full object-cover" />
                 ) : (
-                  <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center">
-                    <span className="text-xs font-bold text-slate-400">{post.writer.name.charAt(0)}</span>
+                  <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center">
+                    <span className="text-base font-bold text-slate-400">{post.writer.name.charAt(0)}</span>
                   </div>
                 )}
-                <span className="text-black/60 font-medium">{post.writer.name}</span>
+                <span className="text-black/60 font-medium text-base">{post.writer.name}</span>
               </div>
             )}
             <div className="flex items-center gap-1.5">
@@ -145,6 +145,18 @@ export default async function PostPage({
           </div>
 
           <hr className="border-0 border-t border-solid my-6" style={{ borderColor: "#eee" }} />
+
+          {post.writer?.avatarUrl && (
+            <div className="flex justify-center mb-8">
+              <Image
+                src={post.writer.avatarUrl}
+                alt={post.writer.name}
+                width={180}
+                height={180}
+                className="rounded-full object-cover w-[100px] h-[100px] md:w-[180px] md:h-[180px]"
+              />
+            </div>
+          )}
 
           <div className="prose max-w-none" data-article-content>
             {isHtml ? (
