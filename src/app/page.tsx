@@ -16,6 +16,7 @@ type Post = {
   published: boolean;
   views: number;
   createdAt: Date;
+  writer?: { name: string; avatarUrl: string | null } | null;
 };
 
 type Banner = { id: number; label: string; url: string; imageUrl: string | null; order: number };
@@ -40,6 +41,7 @@ async function getPosts(page: number) {
       select: {
         id: true, title: true, slug: true, excerpt: true,
         eyecatch: true, published: true, views: true, createdAt: true,
+        writer: { select: { name: true, avatarUrl: true } },
       },
     }),
     prisma.post.count({ where: { published: true } }),

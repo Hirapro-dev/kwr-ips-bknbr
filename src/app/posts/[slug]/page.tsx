@@ -125,23 +125,9 @@ export default async function PostPage({
             {post.title}
           </h1>
 
-          <div className="flex items-center gap-3 text-sm text-black/40 mb-4 flex-wrap">
-            {post.writer && (
-              <div className="flex items-center gap-2.5">
-                {post.writer.avatarUrl ? (
-                  <Image src={post.writer.avatarUrl} alt={post.writer.name} width={44} height={44} className="rounded-full object-cover" />
-                ) : (
-                  <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center">
-                    <span className="text-base font-bold text-slate-400">{post.writer.name.charAt(0)}</span>
-                  </div>
-                )}
-                <span className="text-black/60 font-medium text-base">{post.writer.name}</span>
-              </div>
-            )}
-            <div className="flex items-center gap-1.5">
-              <FiCalendar size={14} />
-              <time>{formatDate(post.createdAt)}</time>
-            </div>
+          <div className="flex items-center gap-2 text-sm text-black/40 mb-4">
+            <FiCalendar size={14} />
+            <time>{formatDate(post.createdAt)}</time>
           </div>
 
           <hr className="border-0 border-t border-solid my-6" style={{ borderColor: "#eee" }} />
@@ -151,9 +137,9 @@ export default async function PostPage({
               <Image
                 src={post.writer.avatarUrl}
                 alt={post.writer.name}
-                width={180}
-                height={180}
-                className="rounded-full object-cover w-[100px] h-[100px] md:w-[180px] md:h-[180px]"
+                width={230}
+                height={230}
+                className="object-contain w-[100px] md:w-[230px] h-auto"
               />
             </div>
           )}

@@ -9,6 +9,7 @@ type PostCardProps = {
     excerpt?: string | null;
     eyecatch?: string | null;
     createdAt: string | Date;
+    writer?: { name: string; avatarUrl: string | null } | null;
   };
   variant?: "list" | "grid";
 };
@@ -41,6 +42,18 @@ export default function PostCard({ post, variant = "grid" }: PostCardProps) {
             <time className="mt-3 text-sm text-black/40 block">
               {formatDate(post.createdAt)}
             </time>
+            {post.writer && (
+              <div className="flex items-center gap-2 mt-2">
+                {post.writer.avatarUrl ? (
+                  <Image src={post.writer.avatarUrl} alt={post.writer.name} width={24} height={24} className="rounded-full object-cover" />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center">
+                    <span className="text-[10px] font-bold text-slate-400">{post.writer.name.charAt(0)}</span>
+                  </div>
+                )}
+                <span className="text-xs text-black/50">{post.writer.name}</span>
+              </div>
+            )}
           </div>
         </article>
       </Link>
@@ -73,6 +86,18 @@ export default function PostCard({ post, variant = "grid" }: PostCardProps) {
           <time className="mt-2 text-xs text-black/40 block">
             {formatDate(post.createdAt)}
           </time>
+          {post.writer && (
+            <div className="flex items-center gap-1.5 mt-1.5">
+              {post.writer.avatarUrl ? (
+                <Image src={post.writer.avatarUrl} alt={post.writer.name} width={20} height={20} className="rounded-full object-cover" />
+              ) : (
+                <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center">
+                  <span className="text-[9px] font-bold text-slate-400">{post.writer.name.charAt(0)}</span>
+                </div>
+              )}
+              <span className="text-[11px] text-black/50">{post.writer.name}</span>
+            </div>
+          )}
         </div>
       </article>
     </Link>
