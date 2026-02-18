@@ -45,13 +45,13 @@ export default function PostCard({ post, variant = "grid" }: PostCardProps) {
             {post.writer && (
               <div className="flex items-center gap-2 mt-2">
                 {post.writer.avatarUrl ? (
-                  <Image src={post.writer.avatarUrl} alt={post.writer.name} width={24} height={24} className="rounded-full object-cover" />
+                  <Image src={post.writer.avatarUrl} alt={post.writer.name} width={29} height={29} className="rounded-full object-cover" />
                 ) : (
-                  <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center">
-                    <span className="text-[10px] font-bold text-slate-400">{post.writer.name.charAt(0)}</span>
+                  <div className="w-[29px] h-[29px] rounded-full bg-slate-100 flex items-center justify-center">
+                    <span className="text-[11px] font-bold text-slate-400">{post.writer.name.charAt(0)}</span>
                   </div>
                 )}
-                <span className="text-xs text-black/50">{post.writer.name}</span>
+                <span className="text-sm text-black/50">{post.writer.name}</span>
               </div>
             )}
           </div>
@@ -89,13 +89,13 @@ export default function PostCard({ post, variant = "grid" }: PostCardProps) {
           {post.writer && (
             <div className="flex items-center gap-1.5 mt-1.5">
               {post.writer.avatarUrl ? (
-                <Image src={post.writer.avatarUrl} alt={post.writer.name} width={20} height={20} className="rounded-full object-cover" />
+                <Image src={post.writer.avatarUrl} alt={post.writer.name} width={24} height={24} className="rounded-full object-cover" />
               ) : (
-                <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center">
-                  <span className="text-[9px] font-bold text-slate-400">{post.writer.name.charAt(0)}</span>
+                <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center">
+                  <span className="text-[10px] font-bold text-slate-400">{post.writer.name.charAt(0)}</span>
                 </div>
               )}
-              <span className="text-[11px] text-black/50">{post.writer.name}</span>
+              <span className="text-xs text-black/50">{post.writer.name}</span>
             </div>
           )}
         </div>
