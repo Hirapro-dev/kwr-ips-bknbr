@@ -42,7 +42,7 @@ a.btn.btn-c {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.5rem 1rem 0.5rem 1rem;
+  padding: 0.75rem 2rem 0.75rem 2rem;
   cursor: pointer;
   user-select: none;
   transition: all 0.3s;
@@ -71,7 +71,7 @@ a.btn.btn-c .btn-c-icon svg {
 @media (max-width: 640px) {
   a.btn.btn-c {
     font-size: 0.75rem;
-    padding: 0.4rem 0.75rem;
+    padding: 0.75rem 1.5rem;
   }
   a.btn.btn-c .btn-c-icon,
   a.btn.btn-c .btn-c-icon svg {
@@ -110,6 +110,9 @@ a.btn.btn-c .btn-c-icon svg {
 .prose a[style*="background"] {
   text-decoration: none !important;
   display: inline-block;
+  min-width: 350px;
+  font-size: 1rem !important;
+  padding: 0.75rem 1.5rem !important;
   transition: all 0.3s;
   text-align: center;
   letter-spacing: 0.05em;
@@ -125,9 +128,30 @@ a.btn.btn-c .btn-c-icon svg {
   .prose a[style*="background"] {
     display: block !important;
     width: 100% !important;
+    min-width: 0 !important;
     box-sizing: border-box;
   }
 }
+/* 注釈・引用・ボタンラッパー・YouTube（クラスベースでコードを簡潔に） */
+.prose .note { padding: 1rem 1.25rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0; font-size: 0.9rem; border-left-width: 4px; border-left-style: solid; }
+.prose .note--blue { border-left-color: #3b82f6; background: #eff6ff; }
+.prose .note--green { border-left-color: #22c55e; background: #f0fdf4; }
+.prose .note--red { border-left-color: #ef4444; background: #fef2f2; }
+.prose .note--orange { border-left-color: #f97316; background: #fff7ed; }
+.prose .note--purple { border-left-color: #a855f7; background: #faf5ff; }
+.prose .note--gray { border-left-color: #6b7280; background: #f9fafb; }
+.prose .quote { padding: 1rem 1.25rem; margin: 1.5rem 0; background: #f8fafc; border-radius: 0 0.5rem 0.5rem 0; color: #64748b; font-style: italic; border-left-width: 4px; border-left-style: solid; }
+.prose .quote--blue { border-left-color: #3b82f6; }
+.prose .quote--green { border-left-color: #22c55e; }
+.prose .quote--red { border-left-color: #ef4444; }
+.prose .quote--orange { border-left-color: #f97316; }
+.prose .quote--purple { border-left-color: #a855f7; }
+.prose .quote--gray { border-left-color: #6b7280; }
+.prose .quote cite { font-size: 0.85rem; color: #94a3b8; display: block; margin-top: 0.5rem; }
+.prose .btn-wrap { text-align: center; margin: 1.5rem 0; }
+.prose .youtube-wrap { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; margin: 1.5rem 0; border-radius: 0.5rem; }
+.prose .youtube-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+
 .prose blockquote { border-left: 4px solid var(--color-primary-light); padding-left: 1rem; margin: 1.5rem 0; color: var(--color-text-light); font-style: italic; }
 .prose code { background: #f1f5f9; padding: 0.125rem 0.375rem; border-radius: 0; font-size: 0.875rem; }
 .prose pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0; margin: 1.5rem 0; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word; }
@@ -137,25 +161,26 @@ a.btn.btn-c .btn-c-icon svg {
 .prose th, .prose td { border: 1px solid var(--color-border); padding: 0.5rem 0.75rem; text-align: left; }
 .prose th { background: #f1f5f9; font-weight: 600; }
 
-/* 記事詳細ページ：スマホでは <p> 内の <br> を非表示 */
+/* 記事詳細ページ：スマホでは <p> 内の通常 <br> を非表示（.sp-only はスマホで改行として表示） */
 @media (max-width: 768px) {
-  [data-article-content] p br {
+  [data-article-content] p br:not(.sp-only) {
     display: none;
   }
 }
 
 /* ============================
-   記事内ボタン (.btn)
+   記事内ボタン (.btn) - 本文フォントに合わせたサイズ・min-width 350px
    ============================ */
 .prose .btn,
 .prose a.btn,
 .prose button.btn {
-  font-size: 1.6rem !important;
+  font-size: 1rem !important;
   font-weight: 700 !important;
   line-height: 1.5 !important;
   position: relative;
   display: inline-block !important;
-  padding: 1rem 4rem !important;
+  min-width: 350px;
+  padding: 1rem 1.5rem !important;
   cursor: pointer;
   user-select: none;
   transition: all 0.3s;
@@ -165,20 +190,20 @@ a.btn.btn-c .btn-c-icon svg {
   letter-spacing: 0.1em;
   color: #212529 !important;
   border-radius: 0.5rem !important;
-  /* 改行を許可 */
   white-space: normal;
   word-break: keep-all;
   overflow-wrap: break-word;
 }
 
-/* スマホ: 横幅いっぱい */
+/* スマホ: 横幅いっぱい・min-width 解除 */
 @media (max-width: 768px) {
   .prose .btn,
   .prose a.btn,
   .prose button.btn {
     display: block !important;
     width: 100% !important;
-    padding: 1rem 2rem !important;
+    min-width: 0 !important;
+    padding: 1rem 1.25rem !important;
     box-sizing: border-box;
   }
 }
@@ -186,8 +211,9 @@ a.btn.btn-c .btn-c-icon svg {
 /* ---- 青色グラデーション (btn-c) ---- */
 .prose a.btn-c,
 .prose a.btn.btn-c {
-  font-size: 1.8rem !important;
-  padding: 2rem 4rem 2rem 2rem !important;
+  font-size: 1rem !important;
+  padding: 1rem 1.5rem 1rem 1.5rem !important;
+  min-width: 350px;
   color: #fff !important;
   border-radius: 100vh !important;
   background: linear-gradient(to right, #007adf 0%, #00ecbc 100%) !important;
@@ -196,7 +222,7 @@ a.btn.btn-c .btn-c-icon svg {
 .prose a.btn-c::before {
   font-family: "Font Awesome 5 Free";
   font-weight: 900;
-  font-size: 1.6rem;
+  font-size: 1rem;
   line-height: 1;
   position: absolute;
   top: calc(50% - 0.8rem);
@@ -212,8 +238,9 @@ a.btn.btn-c .btn-c-icon svg {
 /* ---- ブラックグラデーション (btn-k) ---- */
 .prose a.btn-k,
 .prose a.btn.btn-k {
-  font-size: 1.8rem !important;
-  padding: 2rem 4rem 2rem 2rem !important;
+  font-size: 1rem !important;
+  padding: 1rem 1.5rem 1rem 1.5rem !important;
+  min-width: 350px;
   color: #fff !important;
   border-radius: 100vh !important;
   background: linear-gradient(to right, #1f2937 0%, #374151 50%, #1f2937 100%) !important;
@@ -222,7 +249,7 @@ a.btn.btn-c .btn-c-icon svg {
 .prose a.btn-k::before {
   font-family: "Font Awesome 5 Free";
   font-weight: 900;
-  font-size: 1.6rem;
+  font-size: 1rem;
   line-height: 1;
   position: absolute;
   top: calc(50% - 0.8rem);
@@ -238,8 +265,9 @@ a.btn.btn-c .btn-c-icon svg {
 /* ---- 赤色グラデーション (btn-r) ---- */
 .prose a.btn-r,
 .prose a.btn.btn-r {
-  font-size: 1.8rem !important;
-  padding: 2rem 4rem 2rem 2rem !important;
+  font-size: 1rem !important;
+  padding: 1rem 1.5rem 1rem 1.5rem !important;
+  min-width: 350px;
   color: #fff !important;
   border-radius: 100vh !important;
   background: linear-gradient(to right, #e53e3e 0%, #f56565 50%, #fc8181 100%) !important;
@@ -248,7 +276,7 @@ a.btn.btn-c .btn-c-icon svg {
 .prose a.btn-r::before {
   font-family: "Font Awesome 5 Free";
   font-weight: 900;
-  font-size: 1.6rem;
+  font-size: 1rem;
   line-height: 1;
   position: absolute;
   top: calc(50% - 0.8rem);
@@ -264,8 +292,9 @@ a.btn.btn-c .btn-c-icon svg {
 /* ---- 緑色グラデーション (btn-g) ---- */
 .prose a.btn-g,
 .prose a.btn.btn-g {
-  font-size: 1.8rem !important;
-  padding: 2rem 4rem 2rem 2rem !important;
+  font-size: 1rem !important;
+  padding: 1rem 1.5rem 1rem 1.5rem !important;
+  min-width: 350px;
   color: #fff !important;
   border-radius: 100vh !important;
   background: linear-gradient(to right, #38a169 0%, #48bb78 50%, #68d391 100%) !important;
@@ -274,7 +303,7 @@ a.btn.btn-c .btn-c-icon svg {
 .prose a.btn-g::before {
   font-family: "Font Awesome 5 Free";
   font-weight: 900;
-  font-size: 1.6rem;
+  font-size: 1rem;
   line-height: 1;
   position: absolute;
   top: calc(50% - 0.8rem);
@@ -290,8 +319,9 @@ a.btn.btn-c .btn-c-icon svg {
 /* ---- オレンジグラデーション (btn-o) ---- */
 .prose a.btn-o,
 .prose a.btn.btn-o {
-  font-size: 1.8rem !important;
-  padding: 2rem 4rem 2rem 2rem !important;
+  font-size: 1rem !important;
+  padding: 1rem 1.5rem 1rem 1.5rem !important;
+  min-width: 350px;
   color: #fff !important;
   border-radius: 100vh !important;
   background: linear-gradient(to right, #dd6b20 0%, #ed8936 50%, #f6ad55 100%) !important;
@@ -300,7 +330,7 @@ a.btn.btn-c .btn-c-icon svg {
 .prose a.btn-o::before {
   font-family: "Font Awesome 5 Free";
   font-weight: 900;
-  font-size: 1.6rem;
+  font-size: 1rem;
   line-height: 1;
   position: absolute;
   top: calc(50% - 0.8rem);
@@ -316,8 +346,9 @@ a.btn.btn-c .btn-c-icon svg {
 /* ---- 紫色グラデーション (btn-p) ---- */
 .prose a.btn-p,
 .prose a.btn.btn-p {
-  font-size: 1.8rem !important;
-  padding: 2rem 4rem 2rem 2rem !important;
+  font-size: 1rem !important;
+  padding: 1rem 1.5rem 1rem 1.5rem !important;
+  min-width: 350px;
   color: #fff !important;
   border-radius: 100vh !important;
   background: linear-gradient(to right, #805ad5 0%, #9f7aea 50%, #b794f4 100%) !important;
@@ -326,7 +357,7 @@ a.btn.btn-c .btn-c-icon svg {
 .prose a.btn-p::before {
   font-family: "Font Awesome 5 Free";
   font-weight: 900;
-  font-size: 1.6rem;
+  font-size: 1rem;
   line-height: 1;
   position: absolute;
   top: calc(50% - 0.8rem);
@@ -340,10 +371,11 @@ a.btn.btn-c .btn-c-icon svg {
 }
 
 /* ---- スマホ改行ユーティリティ ---- */
-/* スマホだけ改行: <br class="sp-only"> */
+/* スマホだけ改行: <br class="sp-only"> を記事内に挿入すると、スマホ表示時のみその位置で改行 */
 .sp-only { display: none; }
 @media (max-width: 768px) {
-  .sp-only { display: inline; }
+  .sp-only { display: block; height: 0; overflow: hidden; }
+  br.sp-only { display: block !important; height: auto; overflow: visible; }
 }
 /* PCだけ改行: <br class="pc-only"> */
 .pc-only { display: inline; }

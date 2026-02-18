@@ -14,3 +14,11 @@ export function prettyPrintHtml(html: string): string {
   s = s.replace(/\n{3,}/g, "\n\n");
   return s.trim();
 }
+
+/**
+ * ビジュアルモード用: タグ間の改行・空白を除去し、コード⇔ビジュアル往復で余計なスペースが増えないようにする。
+ */
+export function normalizeHtmlForVisual(html: string): string {
+  if (!html.trim()) return html;
+  return html.replace(/>\s+</g, "><").trim();
+}

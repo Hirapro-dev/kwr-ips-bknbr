@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { FiSave, FiEye, FiArrowLeft, FiUploadCloud, FiClock } from "react-icons/fi";
 import { compressAndUpload } from "@/lib/upload";
-import { prettyPrintHtml } from "@/lib/editor-html";
+import { prettyPrintHtml, normalizeHtmlForVisual } from "@/lib/editor-html";
 import EditorToolbar from "@/components/EditorToolbar";
 
 type EditorMode = "visual" | "code";
@@ -72,8 +72,11 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
   }, [id, router]);
 
   useEffect(() => {
-    if (!loading && mode === "visual" && editorRef.current) editorRef.current.innerHTML = content;
-  }, [loading, mode]);
+    if (!loading && mode === "visual" && editorRef.current) {
+      const normalized = normalizeHtmlForVisual(content);
+      if (editorRef.current.innerHTML !== normalized) editorRef.current.innerHTML = normalized;
+    }
+  }, [loading, mode, content]);
 
   const syncFromVisual = () => { if (editorRef.current) setContent(editorRef.current.innerHTML); };
 
@@ -169,6 +172,13 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
       savedSelectionRef.current = sel.getRangeAt(0).cloneRange();
     } else savedSelectionRef.current = null;
   };
+  const saveSelectionIfInEditor = () => {
+    const sel = window.getSelection();
+    const editor = editorRef.current;
+    if (sel?.rangeCount && editor?.contains(sel.anchorNode)) {
+      savedSelectionRef.current = sel.getRangeAt(0).cloneRange();
+    }
+  };
   const restoreSelection = () => {
     const editor = editorRef.current;
     if (!editor || !savedSelectionRef.current) return false;
@@ -182,7 +192,6 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
   };
 
   const insertLink = () => {
-    if (mode === "visual") saveSelection();
     setLinkUrl(""); setLinkNewTab(false); setLinkDialogOpen(true);
   };
   const submitLink = () => {
@@ -211,23 +220,30 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
     else setContent((p) => (p.trim() ? p.trimEnd() + "\n\n" : "") + html + "\n\n");
   };
 
+  const blockColorClass = (hex: string) => {
+    const m: Record<string, string> = { "#3b82f6": "blue", "#22c55e": "green", "#ef4444": "red", "#f97316": "orange", "#a855f7": "purple", "#6b7280": "gray" };
+    return m[hex.toLowerCase()] ?? "blue";
+  };
+  const escHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
   const insertYoutube = () => {
     const u = prompt("YouTubeのURLを入力:"); if (!u) return;
     const m = u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
     if (!m) { alert("有効なYouTube URLを入力してください"); return; }
-    insertHtml(`<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;max-width:100%;margin:1.5rem 0;border-radius:0.5rem;"><iframe src="https://www.youtube.com/embed/${m[1]}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen></iframe></div>`);
+    insertHtml(`<div class="youtube-wrap"><iframe src="https://www.youtube.com/embed/${m[1]}" allowfullscreen></iframe></div>`);
   };
 
   const insertNote = (color = "#3b82f6") => {
     const t = prompt("注釈テキスト:"); if (!t) return;
-    insertHtml(`<div style="background:${color}10;border-left:4px solid ${color};padding:1rem 1.25rem;margin:1.5rem 0;border-radius:0 0.5rem 0.5rem 0;font-size:0.9rem;"><strong>📝 注釈:</strong> ${t}</div>`);
+    const c = blockColorClass(color);
+    insertHtml(`<div class="note note--${c}"><strong>📝 注釈:</strong> ${escHtml(t)}</div>`);
   };
   const insertQuote = (color = "#3b82f6") => {
     const t = prompt("引用テキスト:"); if (!t) return; const s = prompt("引用元（任意）:");
-    insertHtml(`<blockquote style="border-left:4px solid ${color};padding:1rem 1.25rem;margin:1.5rem 0;background:#f8fafc;border-radius:0 0.5rem 0.5rem 0;color:#64748b;font-style:italic;">${t}${s ? `<br/><cite style="font-size:0.85rem;color:#94a3b8;">― ${s}</cite>` : ""}</blockquote>`);
+    const c = blockColorClass(color);
+    insertHtml(`<blockquote class="quote quote--${c}">${escHtml(t)}${s ? `<cite>― ${escHtml(s)}</cite>` : ""}</blockquote>`);
   };
   const insertButton = (colorData = "#1e40af") => {
-    if (mode === "visual") saveSelection();
     setButtonText("詳しくはこちら"); setButtonUrl(""); setButtonNewTab(true); setButtonColor(colorData); setButtonDialogOpen(true);
   };
   const submitButton = () => {
@@ -235,22 +251,21 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
     const u = buttonUrl.trim();
     if (!t || !u) return;
     setButtonDialogOpen(false);
+    const inner = t.split("|").map((s) => escHtml(s)).join('<br class="sp-only">');
     const targetAttr = buttonNewTab ? ' target="_blank" rel="noopener noreferrer"' : "";
-    let bgStyle = `background:${buttonColor}`;
     let btnClass = "btn";
     try {
       const parsed = JSON.parse(buttonColor);
-      bgStyle = `background:${parsed.gradient || parsed.bg}`;
       if (parsed.cls) btnClass = `btn ${parsed.cls}`;
     } catch { /* legacy: plain color string */ }
-    const html = `<div style="text-align:center;margin:1.5rem 0;"><a href="${u}"${targetAttr} class="${btnClass}" style="display:inline-block;${bgStyle};color:#fff;padding:1rem 2rem;border-radius:100vh;font-weight:700;font-size:1.1rem;text-decoration:none;box-shadow:0 10px 10px rgba(0,0,0,0.2);letter-spacing:0.05em;">${t}</a></div>`;
+    const html = `<div class="btn-wrap"><a href="${u}"${targetAttr} class="${btnClass}">${inner}</a></div>`;
     if (mode === "visual" && editorRef.current) {
-      // DOM操作で挿入（execCommandはclass属性やgradientを除去することがあるため）
+      const editor = editorRef.current;
       const wrapper = document.createElement("div");
       wrapper.innerHTML = html;
       const fragment = document.createDocumentFragment();
       while (wrapper.firstChild) fragment.appendChild(wrapper.firstChild);
-      const editor = editorRef.current;
+      restoreSelection();
       const sel = window.getSelection();
       if (sel && sel.rangeCount && editor.contains(sel.anchorNode)) {
         const range = sel.getRangeAt(0);
@@ -397,7 +412,7 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
           <div onDragOver={(e) => { e.preventDefault(); setEditorDragOver(true); }} onDragLeave={() => setEditorDragOver(false)} onDrop={handleEditorDrop} className="relative">
             {editorDragOver && <div className="absolute inset-0 bg-blue-50/80 border-2 border-dashed border-blue-400 rounded-lg z-10 flex items-center justify-center pointer-events-none"><FiUploadCloud size={36} className="text-blue-400" /></div>}
             {mode === "visual" ? (
-              <div ref={editorRef} contentEditable onInput={syncFromVisual} onKeyDown={handleEditorKeyDown} className="min-h-[500px] px-6 py-4 prose max-w-none outline-none" style={{ whiteSpace: "pre-wrap" }} />
+              <div ref={editorRef} contentEditable onInput={syncFromVisual} onKeyDown={handleEditorKeyDown} onKeyUp={saveSelectionIfInEditor} onMouseUp={saveSelectionIfInEditor} className="min-h-[500px] px-6 py-4 prose max-w-none outline-none" style={{ whiteSpace: "pre-wrap" }} />
             ) : (
               <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="HTMLコードを入力...（&lt;p&gt;ごと改行・&lt;br&gt;で改行）" className="w-full min-h-[500px] px-6 py-4 font-mono text-sm bg-slate-900 text-green-400 outline-none resize-y leading-relaxed whitespace-pre-wrap" spellCheck={false} />
             )}
@@ -429,6 +444,7 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
             <div className="bg-white rounded-lg border border-slate-200 shadow-xl p-5 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
               <p className="text-sm font-semibold text-slate-800 mb-3">ボタンリンク</p>
               <input type="text" value={buttonText} onChange={(e) => setButtonText(e.target.value)} placeholder="ボタンテキスト" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-blue-500" />
+              <p className="text-xs text-slate-500 mb-2">「|」でスマホのみその位置で改行</p>
               <input type="url" value={buttonUrl} onChange={(e) => setButtonUrl(e.target.value)} placeholder="リンク先URL" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-blue-500" />
               <label className="flex items-center gap-2 mb-4 cursor-pointer">
                 <input type="checkbox" checked={buttonNewTab} onChange={(e) => setButtonNewTab(e.target.checked)} className="rounded border-slate-300" />

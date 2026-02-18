@@ -118,6 +118,7 @@ export default function EditorToolbar({
             <button onClick={() => onInsertCustomHtml("<h2></h2>")} className="px-2 py-1.5 text-xs font-mono bg-slate-700 hover:bg-slate-600 text-slate-200 rounded transition-colors" title="H2">h2</button>
             <button onClick={() => onInsertCustomHtml("<h3></h3>")} className="px-2 py-1.5 text-xs font-mono bg-slate-700 hover:bg-slate-600 text-slate-200 rounded transition-colors" title="H3">h3</button>
             <button onClick={() => onInsertCustomHtml("<h4></h4>")} className="px-2 py-1.5 text-xs font-mono bg-slate-700 hover:bg-slate-600 text-slate-200 rounded transition-colors" title="H4">h4</button>
+            <button onClick={() => onInsertCustomHtml('<br class="sp-only">')} className="px-2 py-1.5 text-xs font-mono bg-slate-700 hover:bg-slate-600 text-slate-200 rounded transition-colors" title="スマホでここ改行">sp改行</button>
             <div className="w-px h-5 bg-slate-300 mx-1" />
             <Dropdown label="引用" icon={<FiBookOpen size={14} />} dark>
               {BLOCK_COLORS.map((c) => (
@@ -239,6 +240,11 @@ export default function EditorToolbar({
                 </DropdownItem>
               ))}
             </Dropdown>
+
+            {/* スマホでここ改行（スマホ表示時のみ改行される位置を挿入） */}
+            <button onClick={() => onInsertCustomHtml('<br class="sp-only">')} className={TB} title="スマホでここ改行（スマホ表示時のみこの位置で改行）">
+              <span className="text-xs font-medium">sp改行</span>
+            </button>
 
             {/* カスタムエディタ */}
             {customEditors.length > 0 && (
