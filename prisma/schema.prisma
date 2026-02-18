@@ -18,6 +18,8 @@ model Post {
   published   Boolean    @default(false)
   scheduledAt DateTime?
   views       Int        @default(0)
+  writerId    Int?
+  writer      Writer?    @relation(fields: [writerId], references: [id])
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   clicks      Click[]
@@ -75,4 +77,14 @@ model Banner {
   order    Int    @default(0)
 
   @@map("banners")
+}
+
+model Writer {
+  id        Int     @id @default(autoincrement())
+  name      String
+  avatarUrl String?
+  order     Int     @default(0)
+  posts     Post[]
+
+  @@map("writers")
 }

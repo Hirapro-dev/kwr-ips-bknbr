@@ -12,6 +12,12 @@ import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import { FiArrowLeft, FiCalendar } from "react-icons/fi";
 
+type Writer = {
+  id: number;
+  name: string;
+  avatarUrl: string | null;
+};
+
 type Post = {
   id: number;
   slug: string;
@@ -21,10 +27,11 @@ type Post = {
   eyecatch: string | null;
   published: boolean;
   createdAt: Date;
+  writer?: Writer | null;
 };
 
 async function getPost(slug: string): Promise<Post | null> {
-  return prisma.post.findUnique({ where: { slug } });
+  return prisma.post.findUnique({ where: { slug }, include: { writer: true } });
 }
 
 /** HTMLタグを除去し、比較用テキストを先頭N文字に切り詰める */
@@ -118,9 +125,23 @@ export default async function PostPage({
             {post.title}
           </h1>
 
-          <div className="flex items-center gap-2 text-sm text-black/40 mb-4">
-            <FiCalendar size={14} />
-            <time>{formatDate(post.createdAt)}</time>
+          <div className="flex items-center gap-3 text-sm text-black/40 mb-4 flex-wrap">
+            {post.writer && (
+              <div className="flex items-center gap-2">
+                {post.writer.avatarUrl ? (
+                  <Image src={post.writer.avatarUrl} alt={post.writer.name} width={28} height={28} className="rounded-full object-cover" />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center">
+                    <span className="text-xs font-bold text-slate-400">{post.writer.name.charAt(0)}</span>
+                  </div>
+                )}
+                <span className="text-black/60 font-medium">{post.writer.name}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1.5">
+              <FiCalendar size={14} />
+              <time>{formatDate(post.createdAt)}</time>
+            </div>
           </div>
 
           <hr className="border-0 border-t border-solid my-6" style={{ borderColor: "#eee" }} />

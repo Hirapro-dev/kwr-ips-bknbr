@@ -10,12 +10,12 @@ export async function GET(
   const numId = parseInt(id);
 
   if (isNaN(numId)) {
-    const post = await prisma.post.findUnique({ where: { slug: id } });
+    const post = await prisma.post.findUnique({ where: { slug: id }, include: { writer: true } });
     if (!post) return NextResponse.json({ error: "記事が見つかりません" }, { status: 404 });
     return NextResponse.json(post);
   }
 
-  const post = await prisma.post.findUnique({ where: { id: numId } });
+  const post = await prisma.post.findUnique({ where: { id: numId }, include: { writer: true } });
   if (!post) return NextResponse.json({ error: "記事が見つかりません" }, { status: 404 });
   return NextResponse.json(post);
 }
@@ -30,7 +30,7 @@ export async function PUT(
   const { id } = await params;
   try {
     const body = await request.json();
-    const { title, content, excerpt, eyecatch, published, scheduledAt } = body;
+    const { title, content, excerpt, eyecatch, published, scheduledAt, writerId } = body;
 
     const isScheduled = scheduledAt && new Date(scheduledAt) > new Date();
 
@@ -43,7 +43,9 @@ export async function PUT(
         eyecatch: eyecatch || undefined,
         published: isScheduled ? false : (published ?? undefined),
         scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+        writerId: writerId !== undefined ? (writerId ? parseInt(writerId) : null) : undefined,
       },
+      include: { writer: true },
     });
 
     return NextResponse.json(post);

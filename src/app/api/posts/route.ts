@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { title, content, excerpt, eyecatch, published, scheduledAt } = body;
+    const { title, content, excerpt, eyecatch, published, scheduledAt, writerId } = body;
 
     const slug = generateSlug();
     const isScheduled = scheduledAt && new Date(scheduledAt) > new Date();
@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
         eyecatch: eyecatch || null,
         published: isScheduled ? false : (published ?? false),
         scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+        writerId: writerId ? parseInt(writerId) : null,
       },
     });
 

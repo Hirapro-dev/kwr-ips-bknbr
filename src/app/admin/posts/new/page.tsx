@@ -10,6 +10,7 @@ import EditorToolbar from "@/components/EditorToolbar";
 
 type EditorMode = "visual" | "code";
 type CustomEditor = { id: number; name: string; icon: string; html: string };
+type Writer = { id: number; name: string; avatarUrl: string | null };
 
 export default function NewPost() {
   const router = useRouter();
@@ -34,6 +35,8 @@ export default function NewPost() {
   const [buttonUrl, setButtonUrl] = useState("");
   const [buttonNewTab, setButtonNewTab] = useState(true);
   const [buttonColor, setButtonColor] = useState("#1e40af");
+  const [writers, setWriters] = useState<Writer[]>([]);
+  const [writerId, setWriterId] = useState("");
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const eyecatchInputRef = useRef<HTMLInputElement>(null);
@@ -44,8 +47,12 @@ export default function NewPost() {
     const init = async () => {
       const res = await fetch("/api/auth/me");
       if (!res.ok) { router.push("/admin/login"); return; }
-      const ceRes = await fetch("/api/custom-editors");
+      const [ceRes, wRes] = await Promise.all([
+        fetch("/api/custom-editors"),
+        fetch("/api/writers"),
+      ]);
       if (ceRes.ok) setCustomEditors(await ceRes.json());
+      if (wRes.ok) setWriters(await wRes.json());
     };
     init();
   }, [router]);
@@ -252,7 +259,7 @@ export default function NewPost() {
       const finalContent = mode === "visual" && editorRef.current ? editorRef.current.innerHTML : content;
       const res = await fetch("/api/posts", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content: finalContent, eyecatch: eyecatch || null, published: shouldPublish ?? published, scheduledAt: scheduledAt || null }),
+        body: JSON.stringify({ title, content: finalContent, eyecatch: eyecatch || null, published: shouldPublish ?? published, scheduledAt: scheduledAt || null, writerId: writerId || null }),
       });
       if (res.ok) router.push("/admin/dashboard");
       else { const d = await res.json(); alert(d.error || "保存に失敗"); }
@@ -303,6 +310,17 @@ export default function NewPost() {
       <main className="max-w-4xl mx-auto px-4 py-8" style={{ paddingTop: showSchedule ? "160px" : "124px" }}>
         <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="記事タイトルを入力..."
           className="w-full text-2xl md:text-3xl font-black border-none outline-none bg-transparent mb-6 placeholder:text-slate-300" />
+
+        {writers.length > 0 && (
+          <div className="mb-6">
+            <label className="block text-xs font-semibold text-slate-500 mb-2">執筆者</label>
+            <select value={writerId} onChange={(e) => setWriterId(e.target.value)}
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
+              <option value="">選択しない</option>
+              {writers.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+            </select>
+          </div>
+        )}
 
         <div className="mb-6">
           <label className="block text-xs font-semibold text-slate-500 mb-2">アイキャッチ画像</label>
