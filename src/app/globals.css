@@ -47,14 +47,37 @@ body {
   padding: 15px 0;
   margin-bottom: 0.25rem;
 }
-.prose a {
+.prose a:not(.btn):not([style*="background"]) {
   font-size: 16px;
   line-height: 1.5;
   padding: 15px 0;
   color: var(--color-primary);
   text-decoration: underline;
 }
-.prose a:hover { color: var(--color-primary-dark); }
+.prose a:not(.btn):not([style*="background"]):hover { color: var(--color-primary-dark); }
+
+/* インラインスタイル付きボタン風リンク（style属性にbackgroundを含むa要素） */
+.prose a[style*="background"] {
+  text-decoration: none !important;
+  display: inline-block;
+  transition: all 0.3s;
+  text-align: center;
+  letter-spacing: 0.05em;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.prose a[style*="background"]:hover {
+  opacity: 0.85;
+  transform: scale(1.03);
+}
+@media (max-width: 768px) {
+  .prose a[style*="background"] {
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+}
 .prose blockquote { border-left: 4px solid var(--color-primary-light); padding-left: 1rem; margin: 1.5rem 0; color: var(--color-text-light); font-style: italic; }
 .prose code { background: #f1f5f9; padding: 0.125rem 0.375rem; border-radius: 0; font-size: 0.875rem; }
 .prose pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0; margin: 1.5rem 0; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word; }
@@ -77,21 +100,21 @@ body {
 .prose .btn,
 .prose a.btn,
 .prose button.btn {
-  font-size: 1.6rem;
-  font-weight: 700;
-  line-height: 1.5;
+  font-size: 1.6rem !important;
+  font-weight: 700 !important;
+  line-height: 1.5 !important;
   position: relative;
-  display: inline-block;
-  padding: 1rem 4rem;
+  display: inline-block !important;
+  padding: 1rem 4rem !important;
   cursor: pointer;
   user-select: none;
   transition: all 0.3s;
-  text-align: center;
+  text-align: center !important;
   vertical-align: middle;
-  text-decoration: none;
+  text-decoration: none !important;
   letter-spacing: 0.1em;
-  color: #212529;
-  border-radius: 0.5rem;
+  color: #212529 !important;
+  border-radius: 0.5rem !important;
   /* 改行を許可 */
   white-space: normal;
   word-break: keep-all;
@@ -103,20 +126,21 @@ body {
   .prose .btn,
   .prose a.btn,
   .prose button.btn {
-    display: block;
-    width: 100%;
-    padding: 1rem 2rem;
+    display: block !important;
+    width: 100% !important;
+    padding: 1rem 2rem !important;
+    box-sizing: border-box;
   }
 }
 
 /* ---- 青色グラデーション (btn-c) ---- */
 .prose a.btn-c,
 .prose a.btn.btn-c {
-  font-size: 1.8rem;
-  padding: 2rem 4rem 2rem 2rem;
-  color: #fff;
-  border-radius: 100vh;
-  background-image: linear-gradient(to right, #007adf 0%, #00ecbc 100%);
+  font-size: 1.8rem !important;
+  padding: 2rem 4rem 2rem 2rem !important;
+  color: #fff !important;
+  border-radius: 100vh !important;
+  background: linear-gradient(to right, #007adf 0%, #00ecbc 100%) !important;
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
 }
 .prose a.btn-c::before {
@@ -131,18 +155,18 @@ body {
 }
 .prose a.btn-c:hover {
   transform: scale(1.05);
-  color: #fff;
+  color: #fff !important;
   opacity: 0.9;
 }
 
 /* ---- 赤色グラデーション (btn-r) ---- */
 .prose a.btn-r,
 .prose a.btn.btn-r {
-  font-size: 1.8rem;
-  padding: 2rem 4rem 2rem 2rem;
-  color: #fff;
-  border-radius: 100vh;
-  background-image: linear-gradient(to right, #e53e3e 0%, #f56565 50%, #fc8181 100%);
+  font-size: 1.8rem !important;
+  padding: 2rem 4rem 2rem 2rem !important;
+  color: #fff !important;
+  border-radius: 100vh !important;
+  background: linear-gradient(to right, #e53e3e 0%, #f56565 50%, #fc8181 100%) !important;
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
 }
 .prose a.btn-r::before {
@@ -157,18 +181,18 @@ body {
 }
 .prose a.btn-r:hover {
   transform: scale(1.05);
-  color: #fff;
+  color: #fff !important;
   opacity: 0.9;
 }
 
 /* ---- 緑色グラデーション (btn-g) ---- */
 .prose a.btn-g,
 .prose a.btn.btn-g {
-  font-size: 1.8rem;
-  padding: 2rem 4rem 2rem 2rem;
-  color: #fff;
-  border-radius: 100vh;
-  background-image: linear-gradient(to right, #38a169 0%, #48bb78 50%, #68d391 100%);
+  font-size: 1.8rem !important;
+  padding: 2rem 4rem 2rem 2rem !important;
+  color: #fff !important;
+  border-radius: 100vh !important;
+  background: linear-gradient(to right, #38a169 0%, #48bb78 50%, #68d391 100%) !important;
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
 }
 .prose a.btn-g::before {
@@ -183,18 +207,18 @@ body {
 }
 .prose a.btn-g:hover {
   transform: scale(1.05);
-  color: #fff;
+  color: #fff !important;
   opacity: 0.9;
 }
 
 /* ---- オレンジグラデーション (btn-o) ---- */
 .prose a.btn-o,
 .prose a.btn.btn-o {
-  font-size: 1.8rem;
-  padding: 2rem 4rem 2rem 2rem;
-  color: #fff;
-  border-radius: 100vh;
-  background-image: linear-gradient(to right, #dd6b20 0%, #ed8936 50%, #f6ad55 100%);
+  font-size: 1.8rem !important;
+  padding: 2rem 4rem 2rem 2rem !important;
+  color: #fff !important;
+  border-radius: 100vh !important;
+  background: linear-gradient(to right, #dd6b20 0%, #ed8936 50%, #f6ad55 100%) !important;
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
 }
 .prose a.btn-o::before {
@@ -209,18 +233,18 @@ body {
 }
 .prose a.btn-o:hover {
   transform: scale(1.05);
-  color: #fff;
+  color: #fff !important;
   opacity: 0.9;
 }
 
 /* ---- 紫色グラデーション (btn-p) ---- */
 .prose a.btn-p,
 .prose a.btn.btn-p {
-  font-size: 1.8rem;
-  padding: 2rem 4rem 2rem 2rem;
-  color: #fff;
-  border-radius: 100vh;
-  background-image: linear-gradient(to right, #805ad5 0%, #9f7aea 50%, #b794f4 100%);
+  font-size: 1.8rem !important;
+  padding: 2rem 4rem 2rem 2rem !important;
+  color: #fff !important;
+  border-radius: 100vh !important;
+  background: linear-gradient(to right, #805ad5 0%, #9f7aea 50%, #b794f4 100%) !important;
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
 }
 .prose a.btn-p::before {
@@ -235,7 +259,7 @@ body {
 }
 .prose a.btn-p:hover {
   transform: scale(1.05);
-  color: #fff;
+  color: #fff !important;
   opacity: 0.9;
 }
 
