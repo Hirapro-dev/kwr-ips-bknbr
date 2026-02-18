@@ -222,9 +222,9 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
     const t = prompt("引用テキスト:"); if (!t) return; const s = prompt("引用元（任意）:");
     insertHtml(`<blockquote style="border-left:4px solid ${color};padding:1rem 1.25rem;margin:1.5rem 0;background:#f8fafc;border-radius:0 0.5rem 0.5rem 0;color:#64748b;font-style:italic;">${t}${s ? `<br/><cite style="font-size:0.85rem;color:#94a3b8;">― ${s}</cite>` : ""}</blockquote>`);
   };
-  const insertButton = (color = "#1e40af") => {
+  const insertButton = (colorData = "#1e40af") => {
     if (mode === "visual") saveSelection();
-    setButtonText("詳しくはこちら"); setButtonUrl(""); setButtonNewTab(true); setButtonColor(color); setButtonDialogOpen(true);
+    setButtonText("詳しくはこちら"); setButtonUrl(""); setButtonNewTab(true); setButtonColor(colorData); setButtonDialogOpen(true);
   };
   const submitButton = () => {
     const t = buttonText.trim();
@@ -232,7 +232,14 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
     if (!t || !u) return;
     setButtonDialogOpen(false);
     const targetAttr = buttonNewTab ? ' target="_blank" rel="noopener noreferrer"' : "";
-    const html = `<div style="text-align:center;margin:1.5rem 0;"><a href="${u}"${targetAttr} style="display:inline-block;background:${buttonColor};color:#fff;padding:0.75rem 2rem;border-radius:0.5rem;font-weight:600;text-decoration:none;">${t}</a></div>`;
+    let bgStyle = `background:${buttonColor}`;
+    let btnClass = "btn";
+    try {
+      const parsed = JSON.parse(buttonColor);
+      bgStyle = `background:${parsed.gradient || parsed.bg}`;
+      if (parsed.cls) btnClass = `btn ${parsed.cls}`;
+    } catch { /* legacy: plain color string */ }
+    const html = `<div style="text-align:center;margin:1.5rem 0;"><a href="${u}"${targetAttr} class="${btnClass}" style="display:inline-block;${bgStyle};color:#fff;padding:0.75rem 2rem;border-radius:100vh;font-weight:600;text-decoration:none;box-shadow:0 10px 10px rgba(0,0,0,0.2);">${t}</a></div>`;
     if (mode === "visual" && editorRef.current) {
       if (restoreSelection()) {
         document.execCommand("insertHTML", false, html);

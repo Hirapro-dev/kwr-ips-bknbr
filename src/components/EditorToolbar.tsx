@@ -81,12 +81,12 @@ const BLOCK_COLORS = [
 ];
 
 const BUTTON_COLORS = [
-  { label: "ブルー", bg: "#1e40af" },
-  { label: "ブラック", bg: "#111827" },
-  { label: "グリーン", bg: "#16a34a" },
-  { label: "レッド", bg: "#dc2626" },
-  { label: "オレンジ", bg: "#ea580c" },
-  { label: "パープル", bg: "#7c3aed" },
+  { label: "ブルー", bg: "#1e40af", gradient: "linear-gradient(to right, #007adf, #00ecbc)", cls: "btn-c" },
+  { label: "ブラック", bg: "#111827", gradient: "linear-gradient(to right, #1f2937, #374151, #1f2937)", cls: "btn-k" },
+  { label: "グリーン", bg: "#16a34a", gradient: "linear-gradient(to right, #38a169, #48bb78, #68d391)", cls: "btn-g" },
+  { label: "レッド", bg: "#dc2626", gradient: "linear-gradient(to right, #e53e3e, #f56565, #fc8181)", cls: "btn-r" },
+  { label: "オレンジ", bg: "#ea580c", gradient: "linear-gradient(to right, #dd6b20, #ed8936, #f6ad55)", cls: "btn-o" },
+  { label: "パープル", bg: "#7c3aed", gradient: "linear-gradient(to right, #805ad5, #9f7aea, #b794f4)", cls: "btn-p" },
 ];
 
 const TB = "p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors";
@@ -141,9 +141,9 @@ export default function EditorToolbar({
             </Dropdown>
             <Dropdown label="ボタン" icon={<FiMousePointer size={14} />} dark>
               {BUTTON_COLORS.map((c) => (
-                <DropdownItem key={c.label} onClick={() => onInsertButton(c.bg)}>
+                <DropdownItem key={c.label} onClick={() => onInsertButton(JSON.stringify({ bg: c.bg, gradient: c.gradient, cls: c.cls }))}>
                   <span className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-sm" style={{ background: c.bg }} />
+                    <span className="w-3 h-3 rounded-sm" style={{ background: c.gradient || c.bg }} />
                     {c.label}
                   </span>
                 </DropdownItem>
@@ -231,9 +231,9 @@ export default function EditorToolbar({
             {/* ボタン（色選択付き） */}
             <Dropdown label="ボタン" icon={<FiMousePointer size={14} />}>
               {BUTTON_COLORS.map((c) => (
-                <DropdownItem key={c.label} onClick={() => onInsertButton(c.bg)}>
+                <DropdownItem key={c.label} onClick={() => onInsertButton(JSON.stringify({ bg: c.bg, gradient: c.gradient, cls: c.cls }))}>
                   <span className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-sm" style={{ background: c.bg }} />
+                    <span className="w-3 h-3 rounded-sm" style={{ background: c.gradient || c.bg }} />
                     {c.label}
                   </span>
                 </DropdownItem>

@@ -159,6 +159,32 @@ body {
   opacity: 0.9;
 }
 
+/* ---- ブラックグラデーション (btn-k) ---- */
+.prose a.btn-k,
+.prose a.btn.btn-k {
+  font-size: 1.8rem !important;
+  padding: 2rem 4rem 2rem 2rem !important;
+  color: #fff !important;
+  border-radius: 100vh !important;
+  background: linear-gradient(to right, #1f2937 0%, #374151 50%, #1f2937 100%) !important;
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
+}
+.prose a.btn-k::before {
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  font-size: 1.6rem;
+  line-height: 1;
+  position: absolute;
+  top: calc(50% - 0.8rem);
+  right: 1rem;
+  content: "\f30b";
+}
+.prose a.btn-k:hover {
+  transform: scale(1.05);
+  color: #fff !important;
+  opacity: 0.9;
+}
+
 /* ---- 赤色グラデーション (btn-r) ---- */
 .prose a.btn-r,
 .prose a.btn.btn-r {
