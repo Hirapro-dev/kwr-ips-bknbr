@@ -11,10 +11,49 @@ type PostCardProps = {
     createdAt: string | Date;
     writer?: { name: string; avatarUrl: string | null } | null;
   };
-  variant?: "list" | "grid";
+  variant?: "list" | "grid" | "pickup";
 };
 
 export default function PostCard({ post, variant = "grid" }: PostCardProps) {
+  if (variant === "pickup") {
+    return (
+      <Link href={`/posts/${post.slug}`} className="group block">
+        <article className="relative aspect-[16/10] rounded-lg overflow-hidden bg-black/20 shadow-md">
+          {post.eyecatch ? (
+            <Image
+              src={post.eyecatch}
+              alt={post.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              sizes="(max-width: 768px) 100vw, 50vw"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-slate-200">
+              <span className="font-black text-4xl text-black/20">iPS</span>
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+          <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-6">
+            <h2 className="text-lg md:text-xl font-bold text-white leading-snug line-clamp-2 drop-shadow-sm group-hover:opacity-90">
+              {post.title}
+            </h2>
+            <div className="flex items-center gap-2 mt-3">
+              {post.writer?.avatarUrl ? (
+                <Image src={post.writer.avatarUrl} alt={post.writer.name} width={28} height={28} className="rounded-full object-cover ring-2 ring-white/50" />
+              ) : post.writer ? (
+                <div className="w-7 h-7 rounded-full bg-white/30 flex items-center justify-center">
+                  <span className="text-xs font-bold text-white">{post.writer.name.charAt(0)}</span>
+                </div>
+              ) : null}
+              <time className="text-sm text-white/90">{formatDate(post.createdAt)}</time>
+              {post.writer && <span className="text-sm text-white/80">{post.writer.name}</span>}
+            </div>
+          </div>
+        </article>
+      </Link>
+    );
+  }
+
   if (variant === "list") {
     // Desktop: 横並びリスト型（LIG PC版風）
     return (

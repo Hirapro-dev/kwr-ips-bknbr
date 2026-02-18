@@ -6,6 +6,7 @@ import PostCard from "@/components/PostCard";
 import Pagination from "@/components/Pagination";
 import { formatDate } from "@/lib/utils";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 type Post = {
   id: number;
@@ -21,36 +22,68 @@ type Post = {
 
 type Banner = { id: number; label: string; url: string; imageUrl: string | null; order: number };
 
-async function getPosts(page: number) {
+const postSelect = {
+  id: true, title: true, slug: true, excerpt: true,
+  eyecatch: true, published: true, views: true, createdAt: true,
+  writer: { select: { name: true, avatarUrl: true } },
+} as const;
+
+async function getPosts(page: number, q?: string) {
   const limit = 12;
   const skip = (page - 1) * limit;
 
-  // 予約投稿の自動公開チェック
   const now = new Date();
   await prisma.post.updateMany({
     where: { published: false, scheduledAt: { lte: now, not: null } },
     data: { published: true },
   });
 
+  const where: { published: boolean; OR?: Array<{ title?: { contains: string; mode: "insensitive" }; excerpt?: { contains: string; mode: "insensitive" }; content?: { contains: string; mode: "insensitive" } }> } = { published: true };
+  if (q?.trim()) {
+    const k = q.trim();
+    where.OR = [
+      { title: { contains: k, mode: "insensitive" } },
+      { excerpt: { contains: k, mode: "insensitive" } },
+      { content: { contains: k, mode: "insensitive" } },
+    ];
+  }
+
   const [posts, total] = await Promise.all([
     prisma.post.findMany({
-      where: { published: true },
+      where,
       orderBy: { createdAt: "desc" },
       skip,
       take: limit,
-      select: {
-        id: true, title: true, slug: true, excerpt: true,
-        eyecatch: true, published: true, views: true, createdAt: true,
-        writer: { select: { name: true, avatarUrl: true } },
-      },
+      select: postSelect,
     }),
-    prisma.post.count({ where: { published: true } }),
+    prisma.post.count({ where }),
   ]);
 
   return { posts, total, page, totalPages: Math.ceil(total / limit) };
 }
 
-/** トップ用：おすすめ記事5件（閲覧数順） */
+/** トップ用：人気記事（管理画面で PickUp に指定した記事） */
+async function getPickupPosts(): Promise<Post[]> {
+  try {
+    const now = new Date();
+    await prisma.post.updateMany({
+      where: { published: false, scheduledAt: { lte: now, not: null } },
+      data: { published: true },
+    });
+
+    return await prisma.post.findMany({
+      where: { published: true, isPickup: true } as Prisma.PostWhereInput,
+      orderBy: { createdAt: "desc" },
+      take: 6,
+      select: postSelect,
+    });
+  } catch {
+    // isPickup カラムがまだない（マイグレーション未実行）場合は空で返す
+    return [];
+  }
+}
+
+/** サイドバー用：おすすめ記事5件（閲覧数順） */
 async function getRecommendedForTop(): Promise<Post[]> {
   return prisma.post.findMany({
     where: { published: true },
@@ -74,12 +107,14 @@ async function getBanners(): Promise<Banner[]> {
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; q?: string }>;
 }) {
   const params = await searchParams;
   const page = parseInt(params.page || "1");
-  const [data, recommended, banners] = await Promise.all([
-    getPosts(page),
+  const q = params.q?.trim() || undefined;
+  const [data, pickupPosts, recommended, banners] = await Promise.all([
+    getPosts(page, q),
+    getPickupPosts(),
     getRecommendedForTop(),
     getBanners(),
   ]);
@@ -90,17 +125,52 @@ export default async function Home({
 
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="pt-10 pb-6 border-b border-black/10 flex flex-col lg:flex-row lg:gap-10">
-            {/* メイン */}
-            <div className="flex-1 min-w-0">
-              <h1 className="text-3xl md:text-4xl font-black tracking-tight text-black">Latest</h1>
-              <p className="text-sm text-black/40 mt-1">新着記事</p>
-            </div>
+          {/* 検索バー（LIG風） */}
+          <div className="pt-6 pb-4 border-b border-black/10">
+            <form action="/" method="get" className="relative max-w-2xl">
+              <input type="hidden" name="page" value="1" />
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-black/40 pointer-events-none" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </span>
+              <input
+                type="search"
+                name="q"
+                defaultValue={q}
+                placeholder="どんな記事をお探しですか?"
+                className="w-full pl-12 pr-4 py-3.5 bg-black/5 border border-black/10 rounded-lg text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/20"
+                aria-label="記事を検索"
+              />
+              <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-sm font-medium text-black/60 hover:text-black">
+                検索
+              </button>
+            </form>
           </div>
 
           <div className="lg:flex lg:gap-10">
             {/* メインコンテンツ */}
             <div className="flex-1 min-w-0">
+              {/* PickUp 人気記事（Latest の上） */}
+              {pickupPosts.length > 0 && (
+                <section className="pt-8 pb-6 border-b border-black/10">
+                  <div className="flex items-baseline gap-3 mb-6">
+                    <h2 className="text-2xl md:text-3xl font-black tracking-tight text-black">PickUp</h2>
+                    <p className="text-sm text-black/40">人気記事</p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {pickupPosts.map((post: Post) => (
+                      <PostCard key={post.id} post={post} variant="pickup" />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Latest 新着記事 */}
+              <section className="pt-8 pb-6">
+                <div className="flex items-baseline gap-3 mb-6">
+                  <h2 className="text-2xl md:text-3xl font-black tracking-tight text-black">Latest</h2>
+                  <p className="text-sm text-black/40">新着記事</p>
+                </div>
+
               {data.posts.length > 0 ? (
                 <>
                   <div className="hidden md:block">
@@ -119,9 +189,10 @@ export default async function Home({
                 <div className="text-center py-20">
                   <span className="font-black text-5xl text-black/10">iPS</span>
                   <h2 className="text-lg font-bold text-black mt-4">記事はまだありません</h2>
-                  <p className="text-black/40 text-sm mt-1">管理画面から記事を投稿してください</p>
+                  <p className="text-black/40 text-sm mt-1">{q ? "検索条件に一致する記事がありません" : "管理画面から記事を投稿してください"}</p>
                 </div>
               )}
+              </section>
             </div>
 
             {/* サイドバー: おすすめ＋バナー（デスクトップのみ表示） */}

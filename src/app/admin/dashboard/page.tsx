@@ -11,6 +11,7 @@ import { formatDate } from "@/lib/utils";
 
 type Post = {
   id: number; title: string; slug: string; published: boolean;
+  isPickup: boolean;
   createdAt: string; excerpt: string | null; eyecatch: string | null;
   views: number; scheduledAt: string | null;
   writer?: { id: number; name: string } | null;
@@ -76,6 +77,19 @@ export default function AdminDashboard() {
       });
       if (res.ok) {
         setPosts(posts.map((p) => p.id === post.id ? { ...p, published: !p.published } : p));
+      }
+    } catch { alert("更新に失敗しました"); }
+  };
+
+  const togglePickup = async (post: Post) => {
+    try {
+      const res = await fetch(`/api/posts/${post.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...post, isPickup: !post.isPickup }),
+      });
+      if (res.ok) {
+        setPosts(posts.map((p) => p.id === post.id ? { ...p, isPickup: !p.isPickup } : p));
       }
     } catch { alert("更新に失敗しました"); }
   };
@@ -184,6 +198,7 @@ export default function AdminDashboard() {
                     <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">タイトル</th>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">執筆者</th>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">ステータス</th>
+                    <th className="text-center px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">人気</th>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">閲覧数</th>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">日付</th>
                     <th className="text-right px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">操作</th>
@@ -211,6 +226,16 @@ export default function AdminDashboard() {
                           }`}>
                           {post.published ? <><FiEye size={11} /> 公開中</> : post.scheduledAt ? <><FiClock size={11} /> 予約</> : <><FiEyeOff size={11} /> 下書き</>}
                         </button>
+                      </td>
+                      <td className="px-5 py-3.5 text-center">
+                        <label className="inline-flex items-center justify-center cursor-pointer" title={post.isPickup ? "人気記事を解除" : "人気記事に設定"}>
+                          <input
+                            type="checkbox"
+                            checked={post.isPickup}
+                            onChange={() => togglePickup(post)}
+                            className="rounded border-slate-300 text-amber-500 focus:ring-amber-400 w-4 h-4"
+                          />
+                        </label>
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-1 text-sm text-slate-500">
@@ -252,13 +277,22 @@ export default function AdminDashboard() {
                       {post.writer && (
                         <span className="text-xs text-slate-400 mt-1 block">{post.writer.name}</span>
                       )}
-                      <div className="flex items-center gap-3 mt-2">
+                      <div className="flex items-center gap-3 mt-2 flex-wrap">
                         <button onClick={() => togglePublish(post)}
                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
                             post.published ? "bg-green-50 text-green-700" : post.scheduledAt ? "bg-amber-50 text-amber-700" : "bg-slate-100 text-slate-500"
                           }`}>
                           {post.published ? "公開" : post.scheduledAt ? "予約" : "下書き"}
                         </button>
+                        <label className="inline-flex items-center gap-1 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={post.isPickup}
+                            onChange={() => togglePickup(post)}
+                            className="rounded border-slate-300 text-amber-500 focus:ring-amber-400 w-3.5 h-3.5"
+                          />
+                          <span className="text-xs text-slate-600">人気</span>
+                        </label>
                         <span className="text-xs text-slate-400 flex items-center gap-1"><FiTrendingUp size={11} />{post.views}</span>
                         <span className="text-xs text-slate-400">{formatDate(post.createdAt)}</span>
                       </div>

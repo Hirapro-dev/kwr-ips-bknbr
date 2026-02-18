@@ -10,6 +10,8 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "12");
   const all = searchParams.get("all") === "true";
   const sort = searchParams.get("sort") || "newest";
+  const pickup = searchParams.get("pickup") === "true";
+  const q = searchParams.get("q")?.trim() || "";
 
   // 予約投稿の自動公開チェック
   const now = new Date();
@@ -19,6 +21,14 @@ export async function GET(request: NextRequest) {
   });
 
   const where: Prisma.PostWhereInput = all ? {} : { published: true };
+  if (pickup) (where as Prisma.PostWhereInput).isPickup = true;
+  if (q) {
+    (where as Prisma.PostWhereInput).OR = [
+      { title: { contains: q, mode: "insensitive" } },
+      { excerpt: { contains: q, mode: "insensitive" } },
+      { content: { contains: q, mode: "insensitive" } },
+    ];
+  }
   const skip = (page - 1) * limit;
 
   let orderBy: Prisma.PostOrderByWithRelationInput;
@@ -29,24 +39,27 @@ export async function GET(request: NextRequest) {
     default: orderBy = { createdAt: "desc" };
   }
 
+  const select = {
+    id: true,
+    title: true,
+    slug: true,
+    excerpt: true,
+    eyecatch: true,
+    published: true,
+    isPickup: true,
+    views: true,
+    scheduledAt: true,
+    createdAt: true,
+    writer: { select: { id: true, name: true, avatarUrl: true } },
+  };
+
   const [posts, total] = await Promise.all([
     prisma.post.findMany({
       where,
       orderBy,
       skip,
       take: limit,
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        excerpt: true,
-        eyecatch: true,
-        published: true,
-        views: true,
-        scheduledAt: true,
-        createdAt: true,
-        writer: { select: { id: true, name: true } },
-      },
+      select,
     }),
     prisma.post.count({ where }),
   ]);
@@ -65,7 +78,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { title, content, excerpt, eyecatch, published, scheduledAt, writerId } = body;
+    const { title, content, excerpt, eyecatch, published, scheduledAt, writerId, isPickup } = body;
 
     const slug = generateSlug();
     const isScheduled = scheduledAt && new Date(scheduledAt) > new Date();
@@ -78,6 +91,7 @@ export async function POST(request: NextRequest) {
         excerpt: excerpt || content.replace(/<[^>]*>/g, "").slice(0, 200),
         eyecatch: eyecatch || null,
         published: isScheduled ? false : (published ?? false),
+        isPickup: isPickup === true,
         scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
         writerId: writerId ? parseInt(writerId) : null,
       },

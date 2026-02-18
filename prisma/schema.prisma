@@ -16,6 +16,7 @@ model Post {
   excerpt     String?
   eyecatch    String?
   published   Boolean    @default(false)
+  isPickup    Boolean    @default(false)
   scheduledAt DateTime?
   views       Int        @default(0)
   writerId    Int?

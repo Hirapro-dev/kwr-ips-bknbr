@@ -37,6 +37,7 @@ export default function NewPost() {
   const [buttonColor, setButtonColor] = useState("#1e40af");
   const [writers, setWriters] = useState<Writer[]>([]);
   const [writerId, setWriterId] = useState("");
+  const [isPickup, setIsPickup] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const eyecatchInputRef = useRef<HTMLInputElement>(null);
@@ -229,12 +230,30 @@ export default function NewPost() {
       bgStyle = `background:${parsed.gradient || parsed.bg}`;
       if (parsed.cls) btnClass = `btn ${parsed.cls}`;
     } catch { /* legacy: plain color string */ }
-    const html = `<div style="text-align:center;margin:1.5rem 0;"><a href="${u}"${targetAttr} class="${btnClass}" style="display:inline-block;${bgStyle};color:#fff;padding:0.75rem 2rem;border-radius:100vh;font-weight:600;text-decoration:none;box-shadow:0 10px 10px rgba(0,0,0,0.2);">${t}</a></div>`;
+    const html = `<div style="text-align:center;margin:1.5rem 0;"><a href="${u}"${targetAttr} class="${btnClass}" style="display:inline-block;${bgStyle};color:#fff;padding:1rem 2rem;border-radius:100vh;font-weight:700;font-size:1.1rem;text-decoration:none;box-shadow:0 10px 10px rgba(0,0,0,0.2);letter-spacing:0.05em;">${t}</a></div>`;
     if (mode === "visual" && editorRef.current) {
-      if (restoreSelection()) {
-        document.execCommand("insertHTML", false, html);
-        syncFromVisual();
-      } else setContent((p) => (p.trim() ? p.trimEnd() + "\n\n" : "") + html + "\n\n");
+      // DOM操作で挿入（execCommandはclass属性やgradientを除去することがあるため）
+      const editor = editorRef.current;
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = html;
+      const fragment = document.createDocumentFragment();
+      while (wrapper.firstChild) fragment.appendChild(wrapper.firstChild);
+      // 保存した選択位置を復元してカーソル位置に挿入
+      restoreSelection();
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount && editor.contains(sel.anchorNode)) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(fragment);
+        range.collapse(false);
+      } else {
+        editor.appendChild(fragment);
+      }
+      // 挿入後に空段落を追加（続けて入力しやすくする）
+      const trailingP = document.createElement("p");
+      trailingP.innerHTML = "<br>";
+      editor.appendChild(trailingP);
+      syncFromVisual();
     } else setContent((p) => (p.trim() ? p.trimEnd() + "\n\n" : "") + html + "\n\n");
   };
 
@@ -266,7 +285,7 @@ export default function NewPost() {
       const finalContent = mode === "visual" && editorRef.current ? editorRef.current.innerHTML : content;
       const res = await fetch("/api/posts", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content: finalContent, eyecatch: eyecatch || null, published: shouldPublish ?? published, scheduledAt: scheduledAt || null, writerId: writerId || null }),
+        body: JSON.stringify({ title, content: finalContent, eyecatch: eyecatch || null, published: shouldPublish ?? published, isPickup, scheduledAt: scheduledAt || null, writerId: writerId || null }),
       });
       if (res.ok) router.push("/admin/dashboard");
       else { const d = await res.json(); alert(d.error || "保存に失敗"); }
@@ -328,6 +347,13 @@ export default function NewPost() {
             </select>
           </div>
         )}
+
+        <div className="mb-6">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={isPickup} onChange={(e) => setIsPickup(e.target.checked)} className="rounded border-slate-300 text-amber-500 focus:ring-amber-400" />
+            <span className="text-sm font-medium text-slate-700">人気記事に設定する（トップの PickUp に表示）</span>
+          </label>
+        </div>
 
         <div className="mb-6">
           <label className="block text-xs font-semibold text-slate-500 mb-2">アイキャッチ画像</label>

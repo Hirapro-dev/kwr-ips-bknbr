@@ -30,21 +30,35 @@ export async function PUT(
   const { id } = await params;
   try {
     const body = await request.json();
-    const { title, content, excerpt, eyecatch, published, scheduledAt, writerId } = body;
+    const { title, content, excerpt, eyecatch, published, scheduledAt, writerId, isPickup } = body;
 
     const isScheduled = scheduledAt && new Date(scheduledAt) > new Date();
 
+    const data: {
+      title?: string;
+      content?: string;
+      excerpt?: string;
+      eyecatch?: string | null;
+      published?: boolean;
+      isPickup?: boolean;
+      scheduledAt?: Date | null;
+      writerId?: number | null;
+    } = {
+      eyecatch: eyecatch || undefined,
+      published: isScheduled ? false : (published ?? undefined),
+      isPickup: isPickup !== undefined ? !!isPickup : undefined,
+      scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+      writerId: writerId !== undefined ? (writerId ? parseInt(writerId) : null) : undefined,
+    };
+    if (title !== undefined) data.title = title;
+    if (content !== undefined) {
+      data.content = content;
+      data.excerpt = excerpt || content.replace(/<[^>]*>/g, "").slice(0, 200);
+    } else if (excerpt !== undefined) data.excerpt = excerpt;
+
     const post = await prisma.post.update({
       where: { id: parseInt(id) },
-      data: {
-        title,
-        content,
-        excerpt: excerpt || content.replace(/<[^>]*>/g, "").slice(0, 200),
-        eyecatch: eyecatch || undefined,
-        published: isScheduled ? false : (published ?? undefined),
-        scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
-        writerId: writerId !== undefined ? (writerId ? parseInt(writerId) : null) : undefined,
-      },
+      data,
       include: { writer: true },
     });
 
