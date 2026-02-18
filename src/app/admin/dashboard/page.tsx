@@ -13,8 +13,10 @@ type Post = {
   id: number; title: string; slug: string; published: boolean;
   createdAt: string; excerpt: string | null; eyecatch: string | null;
   views: number; scheduledAt: string | null;
+  writer?: { id: number; name: string } | null;
 };
 
+type Writer = { id: number; name: string };
 type SortKey = "newest" | "oldest" | "views_desc" | "views_asc";
 
 export default function AdminDashboard() {
@@ -23,12 +25,22 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [sort, setSort] = useState<SortKey>("newest");
+  const [writers, setWriters] = useState<Writer[]>([]);
+  const [filterWriterId, setFilterWriterId] = useState<number | null>(null);
 
   useEffect(() => {
     checkAuth();
+    fetchWriters();
   }, []);
 
   useEffect(() => { fetchPosts(); }, [sort]);
+
+  const fetchWriters = async () => {
+    try {
+      const res = await fetch("/api/writers");
+      if (res.ok) { const data = await res.json(); setWriters(data); }
+    } catch { /* ignore */ }
+  };
 
   const checkAuth = async () => {
     const res = await fetch("/api/auth/me");
@@ -73,7 +85,10 @@ export default function AdminDashboard() {
     router.push("/admin/login");
   };
 
-  const totalViews = posts.reduce((s, p) => s + p.views, 0);
+  const filteredPosts = filterWriterId
+    ? posts.filter((p) => p.writer?.id === filterWriterId)
+    : posts;
+  const totalViews = filteredPosts.reduce((s, p) => s + p.views, 0);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -100,11 +115,11 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-lg border border-slate-200 p-4">
             <p className="text-xs text-slate-400 font-medium">総記事数</p>
-            <p className="text-2xl font-black text-slate-900 mt-1">{posts.length}</p>
+            <p className="text-2xl font-black text-slate-900 mt-1">{filteredPosts.length}</p>
           </div>
           <div className="bg-white rounded-lg border border-slate-200 p-4">
             <p className="text-xs text-slate-400 font-medium">公開中</p>
-            <p className="text-2xl font-black text-green-600 mt-1">{posts.filter(p => p.published).length}</p>
+            <p className="text-2xl font-black text-green-600 mt-1">{filteredPosts.filter(p => p.published).length}</p>
           </div>
           <div className="bg-white rounded-lg border border-slate-200 p-4">
             <p className="text-xs text-slate-400 font-medium">総閲覧数</p>
@@ -112,7 +127,7 @@ export default function AdminDashboard() {
           </div>
           <div className="bg-white rounded-lg border border-slate-200 p-4">
             <p className="text-xs text-slate-400 font-medium">予約投稿</p>
-            <p className="text-2xl font-black text-amber-600 mt-1">{posts.filter(p => p.scheduledAt && !p.published).length}</p>
+            <p className="text-2xl font-black text-amber-600 mt-1">{filteredPosts.filter(p => p.scheduledAt && !p.published).length}</p>
           </div>
         </div>
 
@@ -131,6 +146,18 @@ export default function AdminDashboard() {
               <option value="views_desc">閲覧数 多い順</option>
               <option value="views_asc">閲覧数 少ない順</option>
             </select>
+            {writers.length > 0 && (
+              <select
+                value={filterWriterId ?? ""}
+                onChange={(e) => setFilterWriterId(e.target.value ? parseInt(e.target.value) : null)}
+                className="text-xs border border-slate-200 rounded-lg px-3 py-1.5 text-slate-600 focus:outline-none focus:border-blue-400"
+              >
+                <option value="">全執筆者</option>
+                {writers.map((w) => (
+                  <option key={w.id} value={w.id}>{w.name}</option>
+                ))}
+              </select>
+            )}
           </div>
           <Link href="/admin/posts/new"
             className="bg-black hover:bg-black/80 text-white font-semibold px-5 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm">
@@ -141,7 +168,7 @@ export default function AdminDashboard() {
         {/* Posts list */}
         {loading ? (
           <div className="text-center py-20 text-slate-400">読み込み中...</div>
-        ) : posts.length === 0 ? (
+        ) : filteredPosts.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-lg border border-slate-200">
             <p className="text-slate-400 text-lg mb-4">まだ記事がありません</p>
             <Link href="/admin/posts/new" className="inline-flex items-center gap-2 bg-black text-white px-5 py-2 rounded-lg text-sm">
@@ -155,6 +182,7 @@ export default function AdminDashboard() {
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">タイトル</th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">執筆者</th>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">ステータス</th>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">閲覧数</th>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">日付</th>
@@ -162,12 +190,15 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {posts.map((post) => (
+                  {filteredPosts.map((post) => (
                     <tr key={post.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-5 py-3.5">
                         <Link href={`/posts/${post.slug}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-900 text-sm hover:text-blue-600 hover:underline">
                           {post.title}
                         </Link>
+                      </td>
+                      <td className="px-5 py-3.5 text-sm text-slate-500">
+                        {post.writer?.name || <span className="text-slate-300">—</span>}
                       </td>
                       <td className="px-5 py-3.5">
                         <button onClick={() => togglePublish(post)}
@@ -211,13 +242,16 @@ export default function AdminDashboard() {
 
             {/* Mobile */}
             <div className="md:hidden divide-y divide-slate-100">
-              {posts.map((post) => (
+              {filteredPosts.map((post) => (
                 <div key={post.id} className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <Link href={`/posts/${post.slug}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-900 text-sm truncate block hover:text-blue-600 hover:underline">
                         {post.title}
                       </Link>
+                      {post.writer && (
+                        <span className="text-xs text-slate-400 mt-1 block">{post.writer.name}</span>
+                      )}
                       <div className="flex items-center gap-3 mt-2">
                         <button onClick={() => togglePublish(post)}
                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${

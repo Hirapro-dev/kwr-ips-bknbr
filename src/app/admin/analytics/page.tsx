@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { FiArrowLeft, FiEye, FiMousePointer, FiBarChart2, FiChevronDown, FiExternalLink } from "react-icons/fi";
 
-type PostSummary = { id: number; title: string; views: number; published: boolean; createdAt: string; scheduledAt: string | null };
+type PostSummary = { id: number; title: string; views: number; published: boolean; createdAt: string; scheduledAt: string | null; writer?: { id: number; name: string } | null };
+type Writer = { id: number; name: string };
 type PostDetail = {
   post: { id: number; title: string; views: number };
   viewsByDate: Record<string, number>;
@@ -30,6 +31,8 @@ function AnalyticsContent() {
   const [detail, setDetail] = useState<PostDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [period, setPeriod] = useState<Period>("daily");
+  const [writers, setWriters] = useState<Writer[]>([]);
+  const [filterWriterId, setFilterWriterId] = useState<number | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -42,6 +45,12 @@ function AnalyticsContent() {
         setTotalViews(data.totalViews);
         setTotalClicks(data.totalClicks);
       }
+      // 執筆者一覧を取得
+      try {
+        const wRes = await fetch("/api/writers");
+        if (wRes.ok) setWriters(await wRes.json());
+      } catch { /* ignore */ }
+
       const qPostId = searchParams.get("postId");
       if (qPostId) setSelectedPost(parseInt(qPostId));
       setLoading(false);
@@ -60,7 +69,10 @@ function AnalyticsContent() {
     loadDetail();
   }, [selectedPost, period]);
 
-  const maxViews = Math.max(...posts.map((p) => p.views), 1);
+  const filteredPosts = filterWriterId
+    ? posts.filter((p) => p.writer?.id === filterWriterId)
+    : posts;
+  const maxViews = Math.max(...filteredPosts.map((p) => p.views), 1);
 
   const formatPublishedAt = (p: PostSummary) => {
     if (p.published) return new Date(p.scheduledAt || p.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
@@ -80,19 +92,35 @@ function AnalyticsContent() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8">
+        {/* 執筆者フィルター */}
+        {writers.length > 0 && (
+          <div className="mb-6">
+            <select
+              value={filterWriterId ?? ""}
+              onChange={(e) => setFilterWriterId(e.target.value ? parseInt(e.target.value) : null)}
+              className="text-xs border border-slate-200 rounded-lg px-3 py-1.5 text-slate-600 focus:outline-none focus:border-blue-400"
+            >
+              <option value="">全執筆者</option>
+              {writers.map((w) => (
+                <option key={w.id} value={w.id}>{w.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* サマリーカード */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-lg border border-slate-200 p-5">
             <div className="flex items-center gap-2 text-slate-400 mb-2"><FiEye size={16} /><span className="text-xs font-semibold">総閲覧数</span></div>
-            <p className="text-3xl font-black text-slate-900">{totalViews.toLocaleString()}</p>
+            <p className="text-3xl font-black text-slate-900">{filteredPosts.reduce((s, p) => s + p.views, 0).toLocaleString()}</p>
           </div>
           <div className="bg-white rounded-lg border border-slate-200 p-5">
             <div className="flex items-center gap-2 text-slate-400 mb-2"><FiMousePointer size={16} /><span className="text-xs font-semibold">総クリック数</span></div>
-            <p className="text-3xl font-black text-slate-900">{totalClicks.toLocaleString()}</p>
+            <p className="text-3xl font-black text-slate-900">{filterWriterId ? "—" : totalClicks.toLocaleString()}</p>
           </div>
           <div className="bg-white rounded-lg border border-slate-200 p-5">
             <div className="flex items-center gap-2 text-slate-400 mb-2"><FiBarChart2 size={16} /><span className="text-xs font-semibold">記事数</span></div>
-            <p className="text-3xl font-black text-slate-900">{posts.length}</p>
+            <p className="text-3xl font-black text-slate-900">{filteredPosts.length}</p>
           </div>
         </div>
 
@@ -101,15 +129,18 @@ function AnalyticsContent() {
           <div>
             <h2 className="font-bold text-sm text-slate-900 mb-3">記事別アクセス数</h2>
             <div className="bg-white rounded-lg border border-slate-200 divide-y divide-slate-100">
-              {posts.length === 0 ? (
+              {filteredPosts.length === 0 ? (
                 <p className="text-sm text-slate-400 p-4">記事がありません</p>
-              ) : posts.map((post, i) => (
+              ) : filteredPosts.map((post, i) => (
                 <button key={post.id} onClick={() => setSelectedPost(post.id === selectedPost ? null : post.id)}
                   className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors hover:bg-slate-50 ${selectedPost === post.id ? "bg-blue-50 border-l-2 border-blue-500" : ""}`}>
                   <span className="text-xs font-bold text-slate-300 w-5 shrink-0">{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-slate-900 truncate">{post.title}</p>
-                    <p className="text-[11px] text-slate-500 mt-0.5">公開日: {formatPublishedAt(post)}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <p className="text-[11px] text-slate-500">公開日: {formatPublishedAt(post)}</p>
+                      {post.writer && <span className="text-[11px] text-slate-400">| {post.writer.name}</span>}
+                    </div>
                     <div className="mt-1.5 w-full bg-slate-100 rounded-full h-1.5">
                       <div className="bg-blue-500 h-1.5 rounded-full transition-all" style={{ width: `${(post.views / maxViews) * 100}%` }} />
                     </div>

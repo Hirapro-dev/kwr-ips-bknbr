@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
         views: true,
         scheduledAt: true,
         createdAt: true,
+        writer: { select: { id: true, name: true } },
       },
     }),
     prisma.post.count({ where }),
