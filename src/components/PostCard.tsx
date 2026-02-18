@@ -8,7 +8,7 @@ type PostCardProps = {
     title: string;
     excerpt?: string | null;
     eyecatch?: string | null;
-    createdAt: string;
+    createdAt: string | Date;
   };
   variant?: "list" | "grid";
 };

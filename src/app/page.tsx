@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import PostCard from "@/components/PostCard";
 import Pagination from "@/components/Pagination";
 import { formatDate } from "@/lib/utils";
+import { prisma } from "@/lib/prisma";
 
 type Post = {
   id: number;
@@ -14,32 +15,58 @@ type Post = {
   eyecatch: string | null;
   published: boolean;
   views: number;
-  createdAt: string;
+  createdAt: Date;
 };
 
 type Banner = { id: number; label: string; url: string; imageUrl: string | null; order: number };
 
-const baseUrl = () => process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-
 async function getPosts(page: number) {
-  const res = await fetch(`${baseUrl()}/api/posts?page=${page}&limit=12`, { cache: "no-store" });
-  if (!res.ok) return { posts: [], total: 0, page: 1, totalPages: 1 };
-  return res.json();
+  const limit = 12;
+  const skip = (page - 1) * limit;
+
+  // 予約投稿の自動公開チェック
+  const now = new Date();
+  await prisma.post.updateMany({
+    where: { published: false, scheduledAt: { lte: now, not: null } },
+    data: { published: true },
+  });
+
+  const [posts, total] = await Promise.all([
+    prisma.post.findMany({
+      where: { published: true },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+      select: {
+        id: true, title: true, slug: true, excerpt: true,
+        eyecatch: true, published: true, views: true, createdAt: true,
+      },
+    }),
+    prisma.post.count({ where: { published: true } }),
+  ]);
+
+  return { posts, total, page, totalPages: Math.ceil(total / limit) };
 }
 
 /** トップ用：おすすめ記事5件（閲覧数順） */
 async function getRecommendedForTop(): Promise<Post[]> {
-  const res = await fetch(`${baseUrl()}/api/posts/recommended?limit=5`, { cache: "no-store" });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.posts ?? [];
+  return prisma.post.findMany({
+    where: { published: true },
+    orderBy: { views: "desc" },
+    take: 5,
+    select: {
+      id: true, title: true, slug: true, excerpt: true,
+      eyecatch: true, published: true, views: true, createdAt: true,
+    },
+  });
 }
 
 /** 管理画面で設定されたバナーのみ取得 */
 async function getBanners(): Promise<Banner[]> {
-  const res = await fetch(`${baseUrl()}/api/banners`, { cache: "no-store" });
-  if (!res.ok) return [];
-  return res.json();
+  return prisma.banner.findMany({
+    orderBy: { order: "asc" },
+    select: { id: true, label: true, url: true, imageUrl: true, order: true },
+  });
 }
 
 export default async function Home({

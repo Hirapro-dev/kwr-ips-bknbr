@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import PostCard from "@/components/PostCard";
 import ClickTracker from "@/components/ClickTracker";
 import { formatDate } from "@/lib/utils";
+import { prisma } from "@/lib/prisma";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -19,23 +20,63 @@ type Post = {
   excerpt: string | null;
   eyecatch: string | null;
   published: boolean;
-  createdAt: string;
+  createdAt: Date;
 };
 
 async function getPost(slug: string): Promise<Post | null> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const res = await fetch(`${baseUrl}/api/posts/${slug}`, { cache: "no-store" });
-  if (!res.ok) return null;
-  return res.json();
+  return prisma.post.findUnique({ where: { slug } });
+}
+
+/** HTMLタグを除去し、比較用テキストを先頭N文字に切り詰める */
+function toComparableText(excerpt: string | null, content: string, maxLen = 1200): string {
+  const raw = (excerpt || content).replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+  return raw.slice(0, maxLen);
+}
+
+/** 2文字バイグラムの一致率で類似度（0〜1）を計算 */
+function similarityScore(textA: string, textB: string): number {
+  if (!textA.trim() || !textB.trim()) return 0;
+  const toNgrams = (s: string): Set<string> => {
+    const set = new Set<string>();
+    const t = s.replace(/\s+/g, "");
+    for (let i = 0; i < t.length - 1; i++) set.add(t.slice(i, i + 2));
+    if (t.length === 1) set.add(t);
+    return set;
+  };
+  const a = toNgrams(textA);
+  const b = toNgrams(textB);
+  let match = 0;
+  a.forEach((ng) => { if (b.has(ng)) match++; });
+  return a.size > 0 ? match / a.size : 0;
 }
 
 /** 表示中の記事に似た「おすすめ記事」を取得（タイトル類似度で算出） */
-async function getRecommendedPosts(slug: string): Promise<Post[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const res = await fetch(`${baseUrl}/api/posts/recommended?slug=${encodeURIComponent(slug)}`, { cache: "no-store" });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.posts ?? [];
+async function getRecommendedPosts(slug: string): Promise<Omit<Post, "content">[]> {
+  const current = await prisma.post.findUnique({
+    where: { slug, published: true },
+    select: { id: true, excerpt: true, content: true },
+  });
+  if (!current) return [];
+
+  const currentText = toComparableText(current.excerpt, current.content);
+  const candidates = await prisma.post.findMany({
+    where: { published: true, id: { not: current.id } },
+    orderBy: { createdAt: "desc" },
+    take: 40,
+    select: {
+      id: true, title: true, slug: true, excerpt: true,
+      eyecatch: true, published: true, createdAt: true, content: true,
+    },
+  });
+
+  const withScore = candidates.map((p) => {
+    const text = toComparableText(p.excerpt, p.content);
+    const { content: _c, ...rest } = p;
+    return { ...rest, score: similarityScore(currentText, text) };
+  });
+  withScore.sort((a, b) => b.score - a.score);
+
+  return withScore.slice(0, 3).map(({ score: _s, ...p }) => p);
 }
 
 export default async function PostPage({
