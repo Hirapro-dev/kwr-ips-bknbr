@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   FiPlus, FiEdit2, FiTrash2, FiEye, FiEyeOff, FiLogOut, FiHome,
-  FiBarChart2, FiSettings, FiImage, FiClock, FiArrowUp, FiArrowDown, FiTrendingUp,
+  FiBarChart2, FiSettings, FiImage, FiUsers, FiClock, FiArrowUp, FiArrowDown, FiTrendingUp,
 } from "react-icons/fi";
 import { formatDate } from "@/lib/utils";
 
@@ -88,6 +88,7 @@ export default function AdminDashboard() {
             <Link href="/admin/analytics" className="p-2 text-slate-400 hover:text-blue-600 transition-colors" title="解析"><FiBarChart2 size={18} /></Link>
             <Link href="/admin/custom-editors" className="p-2 text-slate-400 hover:text-blue-600 transition-colors" title="編集の追加"><FiSettings size={18} /></Link>
             <Link href="/admin/banners" className="p-2 text-slate-400 hover:text-blue-600 transition-colors" title="バナー管理"><FiImage size={18} /></Link>
+            <Link href="/admin/writers" className="p-2 text-slate-400 hover:text-blue-600 transition-colors" title="執筆者管理"><FiUsers size={18} /></Link>
             <Link href="/" target="_blank" rel="noopener noreferrer" className="p-2 text-slate-400 hover:text-blue-600 transition-colors" title="サイト表示（別タブ）"><FiHome size={18} /></Link>
             <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-red-500 transition-colors" title="ログアウト"><FiLogOut size={18} /></button>
           </div>
