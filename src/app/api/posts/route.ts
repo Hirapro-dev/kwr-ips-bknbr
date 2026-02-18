@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     default: orderBy = { createdAt: "desc" };
   }
 
-  const select = {
+  const selectWithPickup = {
     id: true,
     title: true,
     slug: true,
@@ -53,23 +53,64 @@ export async function GET(request: NextRequest) {
     writer: { select: { id: true, name: true, avatarUrl: true } },
   };
 
-  const [posts, total] = await Promise.all([
-    prisma.post.findMany({
-      where,
-      orderBy,
-      skip,
-      take: limit,
-      select,
-    }),
-    prisma.post.count({ where }),
-  ]);
+  const selectWithoutPickup = {
+    id: true,
+    title: true,
+    slug: true,
+    excerpt: true,
+    eyecatch: true,
+    published: true,
+    views: true,
+    scheduledAt: true,
+    createdAt: true,
+    writer: { select: { id: true, name: true, avatarUrl: true } },
+  };
 
-  return NextResponse.json({
-    posts,
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
-  });
+  try {
+    const [posts, total] = await Promise.all([
+      prisma.post.findMany({
+        where,
+        orderBy,
+        skip,
+        take: limit,
+        select: selectWithPickup,
+      }),
+      prisma.post.count({ where }),
+    ]);
+    return NextResponse.json({
+      posts,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
+  } catch {
+    // isPickup カラムがまだない（マイグレーション未実行）場合は isPickup なしで再取得
+    const whereFallback: Prisma.PostWhereInput = all ? {} : { published: true };
+    if (q) {
+      whereFallback.OR = [
+        { title: { contains: q, mode: "insensitive" } },
+        { excerpt: { contains: q, mode: "insensitive" } },
+        { content: { contains: q, mode: "insensitive" } },
+      ];
+    }
+    const [posts, total] = await Promise.all([
+      prisma.post.findMany({
+        where: whereFallback,
+        orderBy,
+        skip,
+        take: limit,
+        select: selectWithoutPickup,
+      }),
+      prisma.post.count({ where: whereFallback }),
+    ]);
+    const postsWithPickup = posts.map((p) => ({ ...p, isPickup: false }));
+    return NextResponse.json({
+      posts: postsWithPickup,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
+  }
 }
 
 export async function POST(request: NextRequest) {
