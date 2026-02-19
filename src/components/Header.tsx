@@ -5,14 +5,14 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-black/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center shrink-0 h-12">
+        <div className="h-14 flex items-center justify-between gap-2">
+          <Link href="/" className="flex items-center shrink min-w-0">
             <Image
               src="/header_logo.png"
               alt="投資のiPSマーケット.com"
               width={200}
               height={40}
-              className="h-10 w-auto object-contain object-left"
+              className="h-8 sm:h-10 w-auto max-w-[140px] sm:max-w-none object-contain object-left"
               priority
             />
           </Link>
@@ -21,7 +21,7 @@ export default function Header() {
             href="https://kawaraban.co.jp/form/contactall/"
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-c"
+            className="btn btn-c shrink-0 whitespace-nowrap"
           >
             お問合わせ
             <span className="btn-c-icon" aria-hidden="true">
