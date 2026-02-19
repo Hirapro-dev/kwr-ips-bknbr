@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { FiArrowLeft, FiEye, FiMousePointer, FiBarChart2, FiChevronDown, FiExternalLink } from "react-icons/fi";
 
-type PostSummary = { id: number; title: string; views: number; published: boolean; createdAt: string; scheduledAt: string | null; writer?: { id: number; name: string } | null };
+type PostSummary = { id: number; title: string; views: number; published: boolean; createdAt: string; scheduledAt: string | null; showForGeneral?: boolean; showForFull?: boolean; writer?: { id: number; name: string } | null };
 type Writer = { id: number; name: string };
 type PostDetail = {
   post: { id: number; title: string; views: number };
@@ -33,6 +33,7 @@ function AnalyticsContent() {
   const [period, setPeriod] = useState<Period>("daily");
   const [writers, setWriters] = useState<Writer[]>([]);
   const [filterWriterId, setFilterWriterId] = useState<number | null>(null);
+  const [filterMember, setFilterMember] = useState<"all" | "general" | "full">("all");
 
   useEffect(() => {
     const init = async () => {
@@ -69,10 +70,24 @@ function AnalyticsContent() {
     loadDetail();
   }, [selectedPost, period]);
 
-  const filteredPosts = filterWriterId
-    ? posts.filter((p) => p.writer?.id === filterWriterId)
-    : posts;
+  const filteredPosts = posts
+    .filter((p) => (filterWriterId ? p.writer?.id === filterWriterId : true))
+    .filter((p) => {
+      if (filterMember === "all") return true;
+      if (filterMember === "general") return p.showForGeneral !== false;
+      if (filterMember === "full") return p.showForFull !== false;
+      return true;
+    });
   const maxViews = Math.max(...filteredPosts.map((p) => p.views), 1);
+
+  const memberLabel = (p: PostSummary) => {
+    const g = p.showForGeneral !== false;
+    const f = p.showForFull !== false;
+    if (g && f) return "一般・正";
+    if (g) return "一般";
+    if (f) return "正";
+    return "—";
+  };
 
   const formatPublishedAt = (p: PostSummary) => {
     if (p.published) return new Date(p.scheduledAt || p.createdAt).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" });
@@ -92,9 +107,18 @@ function AnalyticsContent() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8">
-        {/* 執筆者フィルター */}
-        {writers.length > 0 && (
-          <div className="mb-6">
+        {/* フィルター */}
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <select
+            value={filterMember}
+            onChange={(e) => setFilterMember(e.target.value as "all" | "general" | "full")}
+            className="text-xs border border-slate-200 rounded-lg px-3 py-1.5 text-slate-600 focus:outline-none focus:border-blue-400"
+          >
+            <option value="all">全会員</option>
+            <option value="general">一般会員向け</option>
+            <option value="full">正会員向け</option>
+          </select>
+          {writers.length > 0 && (
             <select
               value={filterWriterId ?? ""}
               onChange={(e) => setFilterWriterId(e.target.value ? parseInt(e.target.value) : null)}
@@ -105,8 +129,8 @@ function AnalyticsContent() {
                 <option key={w.id} value={w.id}>{w.name}</option>
               ))}
             </select>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* サマリーカード */}
         <div className="grid grid-cols-3 gap-4 mb-8">
@@ -137,9 +161,10 @@ function AnalyticsContent() {
                   <span className="text-xs font-bold text-slate-300 w-5 shrink-0">{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-slate-900 truncate">{post.title}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <p className="text-[11px] text-slate-500">公開日: {formatPublishedAt(post)}</p>
                       {post.writer && <span className="text-[11px] text-slate-400">| {post.writer.name}</span>}
+                      <span className="text-[11px] text-slate-500">| 会員: {memberLabel(post)}</span>
                     </div>
                     <div className="mt-1.5 w-full bg-slate-100 rounded-full h-1.5">
                       <div className="bg-blue-500 h-1.5 rounded-full transition-all" style={{ width: `${(post.views / maxViews) * 100}%` }} />

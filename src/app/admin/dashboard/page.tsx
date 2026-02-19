@@ -12,6 +12,8 @@ import { formatDate } from "@/lib/utils";
 type Post = {
   id: number; title: string; slug: string; published: boolean;
   isPickup: boolean;
+  showForGeneral?: boolean;
+  showForFull?: boolean;
   createdAt: string; excerpt: string | null; eyecatch: string | null;
   views: number; scheduledAt: string | null;
   writer?: { id: number; name: string } | null;
@@ -19,6 +21,7 @@ type Post = {
 
 type Writer = { id: number; name: string };
 type SortKey = "newest" | "oldest" | "views_desc" | "views_asc";
+type MemberFilter = "all" | "general" | "full";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -28,6 +31,7 @@ export default function AdminDashboard() {
   const [sort, setSort] = useState<SortKey>("newest");
   const [writers, setWriters] = useState<Writer[]>([]);
   const [filterWriterId, setFilterWriterId] = useState<number | null>(null);
+  const [filterMember, setFilterMember] = useState<MemberFilter>("all");
 
   useEffect(() => {
     checkAuth();
@@ -100,10 +104,24 @@ export default function AdminDashboard() {
     router.push("/admin/login");
   };
 
-  const filteredPosts = filterWriterId
-    ? posts.filter((p) => p.writer?.id === filterWriterId)
-    : posts;
+  const filteredPosts = posts
+    .filter((p) => (filterWriterId ? p.writer?.id === filterWriterId : true))
+    .filter((p) => {
+      if (filterMember === "all") return true;
+      if (filterMember === "general") return p.showForGeneral !== false;
+      if (filterMember === "full") return p.showForFull !== false;
+      return true;
+    });
   const totalViews = filteredPosts.reduce((s, p) => s + p.views, 0);
+
+  const memberLabel = (p: Post) => {
+    const g = p.showForGeneral !== false;
+    const f = p.showForFull !== false;
+    if (g && f) return "一般・正";
+    if (g) return "一般";
+    if (f) return "正";
+    return "—";
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -161,6 +179,15 @@ export default function AdminDashboard() {
               <option value="views_desc">閲覧数 多い順</option>
               <option value="views_asc">閲覧数 少ない順</option>
             </select>
+            <select
+              value={filterMember}
+              onChange={(e) => setFilterMember(e.target.value as MemberFilter)}
+              className="text-xs border border-slate-200 rounded-lg px-3 py-1.5 text-slate-600 focus:outline-none focus:border-blue-400"
+            >
+              <option value="all">全会員</option>
+              <option value="general">一般会員向け</option>
+              <option value="full">正会員向け</option>
+            </select>
             {writers.length > 0 && (
               <select
                 value={filterWriterId ?? ""}
@@ -198,6 +225,7 @@ export default function AdminDashboard() {
                   <tr>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">タイトル</th>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">執筆者</th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">会員</th>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">ステータス</th>
                     <th className="text-center px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">人気</th>
                     <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">閲覧数</th>
@@ -215,6 +243,9 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-5 py-3.5 text-sm text-slate-500">
                         {post.writer?.name || <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className="px-5 py-3.5 text-xs text-slate-600">
+                        {memberLabel(post)}
                       </td>
                       <td className="px-5 py-3.5">
                         <button onClick={() => togglePublish(post)}
@@ -278,6 +309,7 @@ export default function AdminDashboard() {
                       {post.writer && (
                         <span className="text-xs text-slate-400 mt-1 block">{post.writer.name}</span>
                       )}
+                      <span className="text-[11px] text-slate-500 mt-0.5 block">会員: {memberLabel(post)}</span>
                       <div className="flex items-center gap-3 mt-2 flex-wrap">
                         <button onClick={() => togglePublish(post)}
                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${

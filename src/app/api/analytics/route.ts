@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
 
     // 全体サマリー
     const posts = await prisma.post.findMany({
-      select: { id: true, title: true, views: true, published: true, createdAt: true, scheduledAt: true, writer: { select: { id: true, name: true } } },
+      select: { id: true, title: true, views: true, published: true, createdAt: true, scheduledAt: true, showForGeneral: true, showForFull: true, writer: { select: { id: true, name: true } } },
       orderBy: { views: "desc" },
     });
 
