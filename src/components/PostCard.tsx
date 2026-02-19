@@ -12,12 +12,15 @@ type PostCardProps = {
     writer?: { name: string; avatarUrl: string | null } | null;
   };
   variant?: "list" | "grid" | "pickup";
+  /** 指定時は記事リンクを /posts/slug ではなく basePath/slug にする（例: /v, /g） */
+  basePath?: string;
 };
 
-export default function PostCard({ post, variant = "grid" }: PostCardProps) {
+export default function PostCard({ post, variant = "grid", basePath }: PostCardProps) {
+  const href = basePath ? `${basePath}/${post.slug}` : `/posts/${post.slug}`;
   if (variant === "pickup") {
     return (
-      <Link href={`/posts/${post.slug}`} className="group block">
+      <Link href={href} className="group block">
         <article className="relative aspect-[16/10] rounded-lg overflow-hidden bg-black/20 shadow-md">
           {post.eyecatch ? (
             <Image
@@ -57,7 +60,7 @@ export default function PostCard({ post, variant = "grid" }: PostCardProps) {
   if (variant === "list") {
     // Desktop: 横並びリスト型（LIG PC版風）
     return (
-      <Link href={`/posts/${post.slug}`} className="group block">
+      <Link href={href} className="group block">
         <article className="flex gap-6 py-8 border-b border-black/10">
           <div className="w-[360px] shrink-0 aspect-[16/10] relative rounded-sm overflow-hidden bg-black/5">
             {post.eyecatch ? (
@@ -101,7 +104,7 @@ export default function PostCard({ post, variant = "grid" }: PostCardProps) {
 
   // Mobile: グリッドカード型（LIG SP版風）
   return (
-    <Link href={`/posts/${post.slug}`} className="group block">
+    <Link href={href} className="group block">
       <article>
         <div className="aspect-[16/10] relative rounded-sm overflow-hidden bg-black/5">
           {post.eyecatch ? (

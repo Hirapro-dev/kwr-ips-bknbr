@@ -1,14 +1,18 @@
 import Link from "next/link";
 import Image from "next/image";
 
-type HeaderProps = { variant?: "default" | "full" };
+type HeaderProps = {
+  variant?: "default" | "full";
+  /** ロゴのリンク先（未指定時は /） */
+  homeHref?: string;
+};
 
-export default function Header({ variant = "default" }: HeaderProps) {
+export default function Header({ variant = "default", homeHref = "/" }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-black/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="h-14 flex items-center justify-between gap-2">
-          <Link href="/" className="flex items-center shrink min-w-0">
+          <Link href={homeHref} className="flex items-center shrink min-w-0">
             <Image
               src={variant === "full" ? "/header_logo_v.png" : "/header_logo.png"}
               alt="投資のiPSマーケット.com"

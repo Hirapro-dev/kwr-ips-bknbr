@@ -151,7 +151,7 @@ export default async function Home({
                 name="q"
                 defaultValue={q}
                 placeholder="どんな記事をお探しですか?"
-                className="w-full pl-12 pr-4 py-3.5 bg-black/5 border border-black/10 rounded-lg text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/20"
+                className="w-full pl-10 pr-2 py-1.5 bg-black/5 border border-black/10 rounded-lg text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/20"
                 aria-label="記事を検索"
               />
               <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-sm font-medium text-black/60 hover:text-black">

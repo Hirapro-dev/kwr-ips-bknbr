@@ -118,7 +118,7 @@ export default async function GeneralMemberPage({
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Header />
+      <Header homeHref="/g" />
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="lg:hidden pt-6 pb-4 border-b border-black/10">
@@ -141,7 +141,7 @@ export default async function GeneralMemberPage({
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {pickupPosts.map((post: Post) => (
-                      <PostCard key={post.id} post={post} variant="pickup" />
+                      <PostCard key={post.id} post={post} variant="pickup" basePath="/g" />
                     ))}
                   </div>
                 </section>
@@ -161,12 +161,12 @@ export default async function GeneralMemberPage({
                   <>
                     <div className="hidden md:block">
                       {data.posts.map((post: Post) => (
-                        <PostCard key={post.id} post={post} variant="list" />
+                        <PostCard key={post.id} post={post} variant="list" basePath="/g" />
                       ))}
                     </div>
                     <div className="md:hidden grid grid-cols-2 gap-x-4 gap-y-6 pt-6">
                       {data.posts.map((post: Post) => (
-                        <PostCard key={post.id} post={post} variant="grid" />
+                        <PostCard key={post.id} post={post} variant="grid" basePath="/g" />
                       ))}
                     </div>
                     <Pagination currentPage={data.page} totalPages={data.totalPages} basePath="/g" />
@@ -197,7 +197,7 @@ export default async function GeneralMemberPage({
                   <ul className="space-y-4">
                     {recommended.map((post) => (
                       <li key={post.id} className="border-b border-black/5 last:border-0 pb-4 last:pb-0">
-                        <Link href={`/posts/${post.slug}`} className="group flex gap-3">
+                        <Link href={`/g/${post.slug}`} className="group flex gap-3">
                           <div className="w-28 h-20 shrink-0 rounded-sm overflow-hidden bg-black/5">
                             {post.eyecatch ? (
                               <Image src={post.eyecatch} alt={post.title} width={112} height={80} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
