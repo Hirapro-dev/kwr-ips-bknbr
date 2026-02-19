@@ -55,6 +55,7 @@ model Click {
 model PageView {
   id        Int      @id @default(autoincrement())
   postId    Int
+  source    String?  // "public" | "general" | "full" 閲覧元（公開/一般会員/正会員）
   createdAt DateTime @default(now())
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 

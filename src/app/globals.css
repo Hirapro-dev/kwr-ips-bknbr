@@ -114,8 +114,8 @@ a.btn.btn-c.btn-c-header--full:hover {
   font-weight: 800;
   margin-top: 2rem;
   margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--color-primary-light);
+  padding-bottom: 15px;
+  border-bottom: 2px solid #eee;
 }
 .article-detail [data-article-content] h3 {
   font-size: 22px;

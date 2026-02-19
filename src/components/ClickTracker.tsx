@@ -2,19 +2,20 @@
 
 import { useEffect, useRef } from "react";
 
-export default function ClickTracker({ postId }: { postId: number }) {
+/** 閲覧元: 公開トップ / 一般会員(g) / 正会員(v) */
+export default function ClickTracker({ postId, source }: { postId: number; source?: "public" | "general" | "full" }) {
   const tracked = useRef(false);
 
-  // 閲覧数記録
+  // 閲覧数記録（source で一般会員/正会員を別計測）
   useEffect(() => {
     if (tracked.current) return;
     tracked.current = true;
     fetch("/api/analytics", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ postId }),
+      body: JSON.stringify({ postId, source: source ?? "public" }),
     }).catch(() => {});
-  }, [postId]);
+  }, [postId, source]);
 
   // リンククリック追跡
   useEffect(() => {

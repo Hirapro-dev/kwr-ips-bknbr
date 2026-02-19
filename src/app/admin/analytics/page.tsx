@@ -31,6 +31,7 @@ function AnalyticsContent() {
   const [detail, setDetail] = useState<PostDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [period, setPeriod] = useState<Period>("daily");
+  const [viewSource, setViewSource] = useState<"all" | "public" | "general" | "full">("all");
   const [writers, setWriters] = useState<Writer[]>([]);
   const [filterWriterId, setFilterWriterId] = useState<number | null>(null);
   const [filterMember, setFilterMember] = useState<"all" | "general" | "full">("all");
@@ -63,12 +64,12 @@ function AnalyticsContent() {
     if (selectedPost === null) { setDetail(null); return; }
     const loadDetail = async () => {
       setDetailLoading(true);
-      const res = await fetch(`/api/analytics?postId=${selectedPost}&period=${period}`);
+      const res = await fetch(`/api/analytics?postId=${selectedPost}&period=${period}&viewSource=${viewSource}`);
       if (res.ok) setDetail(await res.json());
       setDetailLoading(false);
     };
     loadDetail();
-  }, [selectedPost, period]);
+  }, [selectedPost, period, viewSource]);
 
   const filteredPosts = posts
     .filter((p) => (filterWriterId ? p.writer?.id === filterWriterId : true))
@@ -98,15 +99,15 @@ function AnalyticsContent() {
   if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><p className="text-slate-400">読み込み中...</p></div>;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 overflow-x-hidden">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center gap-3">
-          <Link href="/admin/dashboard" className="p-2 text-slate-400 hover:text-blue-600 rounded-lg"><FiArrowLeft size={18} /></Link>
-          <span className="font-bold text-sm text-slate-900">アクセス解析</span>
+        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center gap-3 min-w-0">
+          <Link href="/admin/dashboard" className="p-2 text-slate-400 hover:text-blue-600 rounded-lg shrink-0"><FiArrowLeft size={18} /></Link>
+          <span className="font-bold text-sm text-slate-900 truncate">アクセス解析</span>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-8">
+      <main className="max-w-5xl mx-auto px-4 py-8 w-full min-w-0 box-border">
         {/* フィルター */}
         <div className="mb-6 flex flex-wrap items-center gap-3">
           <select
@@ -133,7 +134,7 @@ function AnalyticsContent() {
         </div>
 
         {/* サマリーカード */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <div className="bg-white rounded-lg border border-slate-200 p-5">
             <div className="flex items-center gap-2 text-slate-400 mb-2"><FiEye size={16} /><span className="text-xs font-semibold">総閲覧数</span></div>
             <p className="text-3xl font-black text-slate-900">{filteredPosts.reduce((s, p) => s + p.views, 0).toLocaleString()}</p>
@@ -148,11 +149,11 @@ function AnalyticsContent() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-[1fr_1.2fr] gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-6 min-w-0">
           {/* 記事一覧（閲覧数ランキング） */}
-          <div>
+          <div className="min-w-0">
             <h2 className="font-bold text-sm text-slate-900 mb-3">記事別アクセス数</h2>
-            <div className="bg-white rounded-lg border border-slate-200 divide-y divide-slate-100">
+            <div className="bg-white rounded-lg border border-slate-200 divide-y divide-slate-100 overflow-hidden">
               {filteredPosts.length === 0 ? (
                 <p className="text-sm text-slate-400 p-4">記事がありません</p>
               ) : filteredPosts.map((post, i) => (
@@ -179,76 +180,90 @@ function AnalyticsContent() {
           {/* 詳細パネル */}
           <div>
             {selectedPost === null ? (
-              <div className="bg-white rounded-lg border border-slate-200 p-8 text-center">
+              <div className="bg-white rounded-lg border border-slate-200 p-8 text-center min-w-0">
                 <FiBarChart2 size={36} className="text-slate-200 mx-auto mb-3" />
                 <p className="text-sm text-slate-400">左の記事をクリックして詳細を表示</p>
               </div>
             ) : detailLoading ? (
-              <div className="bg-white rounded-lg border border-slate-200 p-8 text-center">
+              <div className="bg-white rounded-lg border border-slate-200 p-8 text-center min-w-0">
                 <p className="text-sm text-slate-400 animate-pulse">読み込み中...</p>
               </div>
             ) : detail ? (
-              <div className="space-y-4">
-                <div className="bg-white rounded-lg border border-slate-200 p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-bold text-sm text-slate-900 truncate pr-4">{detail.post.title}</h3>
-                    <div className="relative shrink-0">
-                      <select value={period} onChange={(e) => setPeriod(e.target.value as Period)}
-                        className="appearance-none text-xs border border-slate-200 rounded-lg px-3 py-1.5 pr-7 bg-white focus:outline-none focus:border-blue-400 cursor-pointer">
-                        <option value="daily">日別（30日間）</option>
-                        <option value="monthly">月別（12ヶ月）</option>
-                        <option value="all">全期間</option>
-                      </select>
-                      <FiChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <div className="space-y-4 min-w-0 overflow-hidden">
+                <div className="bg-white rounded-lg border border-slate-200 p-4 sm:p-5 overflow-hidden">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                    <h3 className="font-bold text-sm text-slate-900 break-words min-w-0">{detail.post.title}</h3>
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
+                      <div className="relative">
+                        <select value={viewSource} onChange={(e) => setViewSource(e.target.value as "all" | "public" | "general" | "full")}
+                          className="appearance-none text-xs border border-slate-200 rounded-lg px-3 py-1.5 pr-7 bg-white focus:outline-none focus:border-blue-400 cursor-pointer">
+                          <option value="all">全会員</option>
+                          <option value="public">公開のみ</option>
+                          <option value="general">一般会員</option>
+                          <option value="full">正会員</option>
+                        </select>
+                        <FiChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                      </div>
+                      <div className="relative">
+                        <select value={period} onChange={(e) => setPeriod(e.target.value as Period)}
+                          className="appearance-none text-xs border border-slate-200 rounded-lg px-3 py-1.5 pr-7 bg-white focus:outline-none focus:border-blue-400 cursor-pointer">
+                          <option value="daily">日別（30日間）</option>
+                          <option value="monthly">月別（12ヶ月）</option>
+                          <option value="all">全期間</option>
+                        </select>
+                        <FiChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                      </div>
                     </div>
                   </div>
 
-                  {/* 閲覧数 棒グラフ */}
+                  {/* 閲覧数 棒グラフ（日別は日毎・月別は月毎の本数を表示） */}
                   <div className="mb-2 flex items-center gap-2 text-slate-400"><FiEye size={14} /><span className="text-xs font-semibold">閲覧数推移</span></div>
                   {Object.keys(detail.viewsByDate).length === 0 ? (
                     <p className="text-xs text-slate-300 py-4 text-center">データがありません</p>
                   ) : (
-                    <div className="flex items-end gap-[3px] h-28 mt-2">
-                      {(() => {
-                        const entries = Object.entries(detail.viewsByDate);
-                        const maxVal = Math.max(...entries.map(([, v]) => v), 1);
-                        return entries.map(([date, count]) => (
-                          <div key={date} className="flex-1 flex flex-col items-center group relative">
-                            <div className="w-full bg-blue-500 rounded-t-sm transition-all hover:bg-blue-600"
-                              style={{ height: `${(count / maxVal) * 100}%`, minHeight: count > 0 ? "4px" : "1px" }} />
-                            <div className="absolute -top-8 bg-slate-800 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                              {date}: {count}
+                    <div className="w-full min-w-0 overflow-x-auto">
+                      <div className="flex items-end gap-[2px] sm:gap-[3px] h-28 mt-2 min-w-0" style={{ minWidth: "min(100%, 320px)" }}>
+                        {(() => {
+                          const entries = Object.entries(detail.viewsByDate).sort(([a], [b]) => a.localeCompare(b));
+                          const maxVal = Math.max(...entries.map(([, v]) => v), 1);
+                          return entries.map(([date, count]) => (
+                            <div key={date} className="flex-1 min-w-0 flex flex-col items-center group relative" style={{ minWidth: "4px" }}>
+                              <div className="w-full max-w-[12px] mx-auto bg-blue-500 rounded-t-sm transition-all hover:bg-blue-600"
+                                style={{ height: `${(count / maxVal) * 100}%`, minHeight: count > 0 ? "4px" : "1px" }} />
+                              <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                                {date}: {count}
+                              </div>
                             </div>
-                          </div>
-                        ));
-                      })()}
+                          ));
+                        })()}
+                      </div>
+                      <div className="flex justify-between mt-1 text-[10px] text-slate-300">
+                        <span>{Object.entries(detail.viewsByDate).sort(([a], [b]) => a.localeCompare(b))[0]?.[0] || ""}</span>
+                        <span>{Object.entries(detail.viewsByDate).sort(([a], [b]) => a.localeCompare(b)).at(-1)?.[0] || ""}</span>
+                      </div>
                     </div>
                   )}
-                  <div className="flex justify-between mt-1">
-                    <span className="text-[10px] text-slate-300">{Object.keys(detail.viewsByDate)[0] || ""}</span>
-                    <span className="text-[10px] text-slate-300">{Object.keys(detail.viewsByDate).at(-1) || ""}</span>
-                  </div>
                 </div>
 
                 {/* クリック数 */}
-                <div className="bg-white rounded-lg border border-slate-200 p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2 text-slate-400"><FiMousePointer size={14} /><span className="text-xs font-semibold">リンククリック数</span></div>
-                    <span className="text-xs text-slate-400">合計 {detail.totalClicks}</span>
+                <div className="bg-white rounded-lg border border-slate-200 p-4 sm:p-5 overflow-hidden">
+                  <div className="flex items-center justify-between mb-3 min-w-0">
+                    <div className="flex items-center gap-2 text-slate-400 shrink-0"><FiMousePointer size={14} /><span className="text-xs font-semibold">リンククリック数</span></div>
+                    <span className="text-xs text-slate-400 shrink-0">合計 {detail.totalClicks}</span>
                   </div>
                   {Object.keys(detail.clicksByUrl).length === 0 ? (
                     <p className="text-xs text-slate-300 py-4 text-center">クリックデータがありません</p>
                   ) : (
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                    <div className="space-y-2 max-h-60 overflow-y-auto overflow-x-hidden">
                       {Object.entries(detail.clicksByUrl)
                         .sort(([, a], [, b]) => b.count - a.count)
                         .map(([url, data]) => (
-                          <div key={url} className="flex items-center gap-3 py-2 border-b border-slate-50 last:border-0">
+                          <div key={url} className="flex items-center gap-3 py-2 border-b border-slate-50 last:border-0 min-w-0">
                             <span className="text-sm font-bold text-blue-600 w-8 shrink-0 text-right">{data.count}</span>
-                            <div className="flex-1 min-w-0">
+                            <div className="flex-1 min-w-0 overflow-hidden">
                               <p className="text-xs font-medium text-slate-700 truncate">{data.label || url}</p>
-                              <p className="text-[10px] text-slate-400 truncate flex items-center gap-1">
-                                <FiExternalLink size={9} />
+                              <p className="text-[10px] text-slate-400 break-all">
+                                <FiExternalLink size={9} className="inline shrink-0 mr-0.5" />
                                 {url}
                               </p>
                             </div>

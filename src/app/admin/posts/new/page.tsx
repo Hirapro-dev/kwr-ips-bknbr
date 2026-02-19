@@ -30,6 +30,7 @@ export default function NewPost() {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [linkNewTab, setLinkNewTab] = useState(false);
+  const [linkColor, setLinkColor] = useState("");
   const [buttonDialogOpen, setButtonDialogOpen] = useState(false);
   const [buttonText, setButtonText] = useState("詳しくはこちら");
   const [buttonUrl, setButtonUrl] = useState("");
@@ -48,6 +49,8 @@ export default function NewPost() {
   const eyecatchInputRef = useRef<HTMLInputElement>(null);
   const lastEnterInBlock = useRef<{ time: number; node: Node | null }>({ time: 0, node: null });
   const savedSelectionRef = useRef<Range | null>(null);
+  const editingLinkAnchorRef = useRef<HTMLAnchorElement | null>(null);
+  const editingButtonAnchorRef = useRef<HTMLAnchorElement | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -207,14 +210,56 @@ export default function NewPost() {
     return true;
   };
 
+  const getSelectedAnchor = (): HTMLAnchorElement | null => {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !editorRef.current) return null;
+    let node: Node | null = sel.anchorNode;
+    while (node && node !== editorRef.current) {
+      if (node instanceof HTMLAnchorElement) return node;
+      node = node.parentNode;
+    }
+    return null;
+  };
+  const getSelectedButtonAnchor = (): HTMLAnchorElement | null => {
+    const a = getSelectedAnchor();
+    if (!a) return null;
+    if (a.classList.contains("btn") || (a.getAttribute("style") || "").includes("background")) return a;
+    return null;
+  };
+
   const insertLink = () => {
-    setLinkUrl(""); setLinkNewTab(false); setLinkDialogOpen(true);
+    editingLinkAnchorRef.current = null;
+    setLinkUrl("");
+    setLinkNewTab(false);
+    setLinkColor("");
+    if (mode === "visual" && editorRef.current) {
+      const anchor = getSelectedAnchor();
+      if (anchor) {
+        editingLinkAnchorRef.current = anchor;
+        setLinkUrl(anchor.getAttribute("href") || "");
+        setLinkNewTab(anchor.target === "_blank");
+        setLinkColor(anchor.style.color || "");
+      }
+    }
+    setLinkDialogOpen(true);
   };
   const submitLink = () => {
     const u = linkUrl.trim();
     if (!u) return;
     setLinkDialogOpen(false);
     if (mode === "visual" && editorRef.current) {
+      const anchor = editingLinkAnchorRef.current;
+      if (anchor && editorRef.current.contains(anchor)) {
+        anchor.href = u;
+        anchor.target = linkNewTab ? "_blank" : "";
+        anchor.rel = linkNewTab ? "noopener noreferrer" : "";
+        if (linkColor.trim()) anchor.style.color = linkColor.trim();
+        else anchor.style.removeProperty("color");
+        editingLinkAnchorRef.current = null;
+        syncFromVisual();
+        return;
+      }
+      editingLinkAnchorRef.current = null;
       if (!restoreSelection()) return;
       document.execCommand("createLink", false, u);
       if (linkNewTab) {
@@ -227,8 +272,18 @@ export default function NewPost() {
           }
         }
       }
+      if (linkColor.trim()) {
+        const sel = window.getSelection();
+        if (sel?.rangeCount) {
+          let node: Node | null = sel.anchorNode;
+          while (node && node !== editorRef.current) {
+            if (node instanceof HTMLAnchorElement) { node.style.color = linkColor.trim(); break; }
+            node = node.parentNode;
+          }
+        }
+      }
       syncFromVisual();
-    } else setContent((p) => p + (p.trim() ? "\n\n" : "") + `<a href="${u}"${linkNewTab ? ' target="_blank" rel="noopener noreferrer"' : ""}>リンク</a>\n\n`);
+    } else setContent((p) => p + (p.trim() ? "\n\n" : "") + `<a href="${u}"${linkNewTab ? ' target="_blank" rel="noopener noreferrer"' : ""}${linkColor.trim() ? ` style="color:${linkColor}"` : ""}>リンク</a>\n\n`);
   };
 
   const insertHtml = (html: string) => {
@@ -264,7 +319,30 @@ export default function NewPost() {
   };
 
   const insertButton = (colorData = "#1e40af") => {
-    setButtonText("詳しくはこちら"); setButtonUrl(""); setButtonNewTab(true); setButtonColor(colorData); setButtonDialogOpen(true);
+    editingButtonAnchorRef.current = null;
+    setButtonText("詳しくはこちら");
+    setButtonUrl("");
+    setButtonNewTab(true);
+    setButtonColor(colorData);
+    if (mode === "visual" && editorRef.current) {
+      const anchor = getSelectedButtonAnchor();
+      if (anchor) {
+        editingButtonAnchorRef.current = anchor;
+        setButtonText(anchor.textContent?.replace(/\s*\|\s*/g, "|").trim() || "詳しくはこちら");
+        setButtonUrl(anchor.getAttribute("href") || "");
+        setButtonNewTab(anchor.target === "_blank");
+        const cls = anchor.className;
+        const styleBg = anchor.style.background || "";
+        if (cls.includes("btn-c")) setButtonColor(JSON.stringify({ cls: "btn-c" }));
+        else if (cls.includes("btn-k")) setButtonColor(JSON.stringify({ cls: "btn-k" }));
+        else if (cls.includes("btn-r")) setButtonColor(JSON.stringify({ cls: "btn-r" }));
+        else if (cls.includes("btn-g")) setButtonColor(JSON.stringify({ cls: "btn-g" }));
+        else if (cls.includes("btn-o")) setButtonColor(JSON.stringify({ cls: "btn-o" }));
+        else if (cls.includes("btn-p")) setButtonColor(JSON.stringify({ cls: "btn-p" }));
+        else if (styleBg) setButtonColor(styleBg.split(/[\s,]+/)[0] || "#1e40af");
+      }
+    }
+    setButtonDialogOpen(true);
   };
   const submitButton = () => {
     const t = buttonText.trim();
@@ -279,15 +357,27 @@ export default function NewPost() {
       const parsed = JSON.parse(buttonColor);
       if (parsed.cls) btnClass = `btn ${parsed.cls}`;
     } catch { /* legacy: plain color string */ }
+    if (mode === "visual" && editorRef.current) {
+      const anchor = editingButtonAnchorRef.current;
+      if (anchor && editorRef.current.contains(anchor)) {
+        anchor.href = u;
+        anchor.target = buttonNewTab ? "_blank" : "";
+        anchor.rel = buttonNewTab ? "noopener noreferrer" : "";
+        anchor.className = btnClass;
+        anchor.innerHTML = inner;
+        editingButtonAnchorRef.current = null;
+        syncFromVisual();
+        return;
+      }
+      editingButtonAnchorRef.current = null;
+    }
     const html = `<div class="btn-wrap"><a href="${u}"${targetAttr} class="${btnClass}">${inner}</a></div>`;
     if (mode === "visual" && editorRef.current) {
-      // DOM操作で挿入（execCommandはclass属性やgradientを除去することがあるため）
       const editor = editorRef.current;
       const wrapper = document.createElement("div");
       wrapper.innerHTML = html;
       const fragment = document.createDocumentFragment();
       while (wrapper.firstChild) fragment.appendChild(wrapper.firstChild);
-      // 保存した選択位置を復元してカーソル位置に挿入
       restoreSelection();
       const sel = window.getSelection();
       if (sel && sel.rangeCount && editor.contains(sel.anchorNode)) {
@@ -298,7 +388,6 @@ export default function NewPost() {
       } else {
         editor.appendChild(fragment);
       }
-      // 挿入後に空段落を追加（続けて入力しやすくする）
       const trailingP = document.createElement("p");
       trailingP.innerHTML = "<br>";
       editor.appendChild(trailingP);
@@ -454,17 +543,24 @@ export default function NewPost() {
         </div>
 
         {linkDialogOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40" onClick={() => setLinkDialogOpen(false)}>
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40" onClick={() => { setLinkDialogOpen(false); editingLinkAnchorRef.current = null; }}>
             <div className="bg-white rounded-lg border border-slate-200 shadow-xl p-5 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
-              <p className="text-sm font-semibold text-slate-800 mb-3">テキストリンク</p>
-              <input type="url" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="URLを入力" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-blue-500" />
+              <p className="text-sm font-semibold text-slate-800 mb-3">{editingLinkAnchorRef.current ? "テキストリンクを編集" : "テキストリンク"}</p>
+              <input type="url" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="リンク先URL" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-blue-500" />
+              <div className="mb-3">
+                <label className="block text-xs text-slate-500 mb-1">色（任意）</label>
+                <div className="flex items-center gap-2">
+                  <input type="text" value={linkColor} onChange={(e) => setLinkColor(e.target.value)} placeholder="例: #1e40af" className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500" />
+                  <input type="color" value={linkColor.startsWith("#") && linkColor.length >= 7 ? linkColor : "#1e40af"} onChange={(e) => setLinkColor(e.target.value)} className="w-10 h-9 rounded border border-slate-200 cursor-pointer" title="色選択" />
+                </div>
+              </div>
               <label className="flex items-center gap-2 mb-4 cursor-pointer">
                 <input type="checkbox" checked={linkNewTab} onChange={(e) => setLinkNewTab(e.target.checked)} className="rounded border-slate-300" />
                 <span className="text-sm text-slate-700">別タブで開く</span>
               </label>
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => setLinkDialogOpen(false)} className="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">キャンセル</button>
-                <button type="button" onClick={submitLink} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">挿入</button>
+                <button type="button" onClick={() => { setLinkDialogOpen(false); editingLinkAnchorRef.current = null; }} className="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">キャンセル</button>
+                <button type="button" onClick={submitLink} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">{editingLinkAnchorRef.current ? "更新" : "挿入"}</button>
               </div>
             </div>
           </div>
@@ -488,9 +584,9 @@ export default function NewPost() {
         )}
 
         {buttonDialogOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40" onClick={() => setButtonDialogOpen(false)}>
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40" onClick={() => { setButtonDialogOpen(false); editingButtonAnchorRef.current = null; }}>
             <div className="bg-white rounded-lg border border-slate-200 shadow-xl p-5 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
-              <p className="text-sm font-semibold text-slate-800 mb-3">ボタンリンク</p>
+              <p className="text-sm font-semibold text-slate-800 mb-3">{editingButtonAnchorRef.current ? "ボタンリンクを編集" : "ボタンリンク"}</p>
               <input type="text" value={buttonText} onChange={(e) => setButtonText(e.target.value)} placeholder="ボタンテキスト" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-blue-500" />
               <p className="text-xs text-slate-500 mb-2">「|」でスマホのみその位置で改行</p>
               <input type="url" value={buttonUrl} onChange={(e) => setButtonUrl(e.target.value)} placeholder="リンク先URL" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-blue-500" />
@@ -499,8 +595,8 @@ export default function NewPost() {
                 <span className="text-sm text-slate-700">別タブで開く</span>
               </label>
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => setButtonDialogOpen(false)} className="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">キャンセル</button>
-                <button type="button" onClick={submitButton} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">挿入</button>
+                <button type="button" onClick={() => { setButtonDialogOpen(false); editingButtonAnchorRef.current = null; }} className="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">キャンセル</button>
+                <button type="button" onClick={submitButton} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">{editingButtonAnchorRef.current ? "更新" : "挿入"}</button>
               </div>
             </div>
           </div>

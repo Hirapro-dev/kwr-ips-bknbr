@@ -117,7 +117,7 @@ export default async function VPostPage({
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Header variant="full" homeHref="/v" />
-      <ClickTracker postId={post.id} />
+      <ClickTracker postId={post.id} source="full" />
 
       <main className="flex-1 max-w-3xl mx-auto px-4 sm:px-6 py-10 w-full">
 
