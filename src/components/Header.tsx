@@ -9,14 +9,8 @@ type HeaderProps = {
 
 export default function Header({ variant = "default", homeHref = "/" }: HeaderProps) {
   const showContact = homeHref === "/";
-  const borderGradient =
-    homeHref === "/g"
-      ? "linear-gradient(to right, #39d2f8, #306160)"
-      : homeHref === "/v"
-        ? "linear-gradient(to right, #1991d3, #0923a4)"
-        : null;
   return (
-    <header className={`sticky top-0 z-50 bg-white ${borderGradient ? "" : "border-b border-black/5"}`}>
+    <header className="sticky top-0 z-50 bg-white border-b border-[#eee]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="h-14 flex items-center justify-between gap-2">
           <Link href={homeHref} className="flex items-center shrink min-w-0">
@@ -49,13 +43,6 @@ export default function Header({ variant = "default", homeHref = "/" }: HeaderPr
           )}
         </div>
       </div>
-      {borderGradient && (
-        <div
-          className="h-px w-full shrink-0"
-          style={{ background: borderGradient }}
-          aria-hidden
-        />
-      )}
     </header>
   );
 }
