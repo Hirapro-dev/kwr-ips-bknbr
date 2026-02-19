@@ -45,8 +45,8 @@ export default function PostCard({ post, variant = "grid" }: PostCardProps) {
                   <span className="text-xs font-bold text-white">{post.writer.name.charAt(0)}</span>
                 </div>
               ) : null}
-              <time className="text-sm text-white/90">{formatDate(post.createdAt)}</time>
               {post.writer && <span className="text-sm text-white/80">{post.writer.name}</span>}
+              <time className="text-sm text-white/90">{formatDate(post.createdAt)}</time>
             </div>
           </div>
         </article>

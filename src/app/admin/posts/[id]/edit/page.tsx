@@ -42,6 +42,9 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
   const [isPickup, setIsPickup] = useState(false);
   const [showForGeneral, setShowForGeneral] = useState(true);
   const [showForFull, setShowForFull] = useState(true);
+  const [googleDocDialogOpen, setGoogleDocDialogOpen] = useState(false);
+  const [googleDocUrl, setGoogleDocUrl] = useState("");
+  const [googleDocLoading, setGoogleDocLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,6 +86,33 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
   }, [loading, mode, content]);
 
   const syncFromVisual = () => { if (editorRef.current) setContent(editorRef.current.innerHTML); };
+
+  const importFromGoogleDoc = async () => {
+    const url = googleDocUrl.trim();
+    if (!url) return;
+    setGoogleDocLoading(true);
+    try {
+      const res = await fetch("/api/import-google-doc", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "取り込みに失敗しました");
+      setTitle(data.title ?? "");
+      const html = data.content ?? "";
+      setContent(html);
+      if (mode === "visual" && editorRef.current) {
+        editorRef.current.innerHTML = normalizeHtmlForVisual(html);
+      }
+      setGoogleDocDialogOpen(false);
+      setGoogleDocUrl("");
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "取り込みに失敗しました");
+    } finally {
+      setGoogleDocLoading(false);
+    }
+  };
 
   // ブロック要素（引用・注釈）を取得
   const getQuoteOrNoteBlock = (): HTMLElement | null => {
@@ -426,6 +456,11 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
           <input ref={eyecatchInputRef} type="file" accept="image/*" onChange={handleEyecatchUpload} className="hidden" />
         </div>
 
+        <div className="mb-3">
+          <button type="button" onClick={() => setGoogleDocDialogOpen(true)} className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+            Google ドキュメントから取り込み
+          </button>
+        </div>
         <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
           <div onDragOver={(e) => { e.preventDefault(); setEditorDragOver(true); }} onDragLeave={() => setEditorDragOver(false)} onDrop={handleEditorDrop} className="relative">
             {editorDragOver && <div className="absolute inset-0 bg-blue-50/80 border-2 border-dashed border-blue-400 rounded-lg z-10 flex items-center justify-center pointer-events-none"><FiUploadCloud size={36} className="text-blue-400" /></div>}
@@ -437,6 +472,23 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
           </div>
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
         </div>
+
+        {googleDocDialogOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40" onClick={() => !googleDocLoading && setGoogleDocDialogOpen(false)}>
+            <div className="bg-white rounded-lg border border-slate-200 shadow-xl p-5 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+              <p className="text-sm font-semibold text-slate-800 mb-3">Google ドキュメントから取り込み</p>
+              <p className="text-xs text-slate-500 mb-2">ドキュメントのURLを貼り付けてください。件名→タイトル、見出し2〜4→H2〜H4、太字・下線・色を反映します。画像は可能な範囲でアップロードします。</p>
+              <input type="url" value={googleDocUrl} onChange={(e) => setGoogleDocUrl(e.target.value)} placeholder="https://docs.google.com/document/d/..." className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:border-blue-500" disabled={googleDocLoading} />
+              <p className="text-xs text-amber-600 mb-3">※ ドキュメントを「リンクを知っている全員が閲覧可」にするか、サービスアカウントに共有してください。</p>
+              <div className="flex justify-end gap-2">
+                <button type="button" onClick={() => setGoogleDocDialogOpen(false)} disabled={googleDocLoading} className="px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">キャンセル</button>
+                <button type="button" onClick={importFromGoogleDoc} disabled={googleDocLoading || !googleDocUrl.trim()} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                  {googleDocLoading ? "取り込み中..." : "取り込む"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* リンク挿入ダイアログ */}
         {linkDialogOpen && (

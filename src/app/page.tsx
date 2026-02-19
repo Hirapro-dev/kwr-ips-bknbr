@@ -139,8 +139,8 @@ export default async function Home({
 
       <main className="flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          {/* 検索バー（LIG風） */}
-          <div className="pt-6 pb-4 border-b border-black/10">
+          {/* 検索バー：SP/タブレットは上部、PCはサイドバー先頭 */}
+          <div className="lg:hidden pt-6 pb-4 border-b border-black/10">
             <form action="/" method="get" className="relative max-w-2xl">
               <input type="hidden" name="page" value="1" />
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-black/40 pointer-events-none" aria-hidden="true">
@@ -217,8 +217,27 @@ export default async function Home({
               </section>
             </div>
 
-            {/* サイドバー: おすすめ＋バナー（デスクトップのみ表示） */}
+            {/* サイドバー: PCは検索を一番上に、おすすめ＋バナー */}
             <aside className="hidden lg:block w-[320px] shrink-0 pt-10">
+              <div className="mb-6">
+                <form action="/" method="get" className="relative">
+                  <input type="hidden" name="page" value="1" />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-black/40 pointer-events-none" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  </span>
+                  <input
+                    type="search"
+                    name="q"
+                    defaultValue={q}
+                    placeholder="記事を検索"
+                    className="w-full pl-10 pr-3 py-2.5 text-sm bg-black/5 border border-black/10 rounded-lg text-black placeholder:text-black/40 focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/20"
+                    aria-label="記事を検索"
+                  />
+                  <button type="submit" className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-medium text-black/60 hover:text-black">
+                    検索
+                  </button>
+                </form>
+              </div>
               {recommended.length > 0 && (
                 <section className="mb-8">
                   <h2 className="text-lg font-black text-black mb-4">あなたにおすすめの記事</h2>

@@ -1,14 +1,16 @@
 import Link from "next/link";
 import Image from "next/image";
 
-export default function Header() {
+type HeaderProps = { variant?: "default" | "full" };
+
+export default function Header({ variant = "default" }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-black/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="h-14 flex items-center justify-between gap-2">
           <Link href="/" className="flex items-center shrink min-w-0">
             <Image
-              src="/header_logo.png"
+              src={variant === "full" ? "/header_logo_v.png" : "/header_logo.png"}
               alt="投資のiPSマーケット.com"
               width={200}
               height={40}
@@ -21,7 +23,7 @@ export default function Header() {
             href="https://kawaraban.co.jp/form/contactall/"
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-c shrink-0 whitespace-nowrap"
+            className={`btn btn-c shrink-0 whitespace-nowrap ${variant === "full" ? "btn-c-header--full" : ""}`}
           >
             お問合わせ
             <span className="btn-c-icon" aria-hidden="true">

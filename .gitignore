@@ -36,6 +36,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# Google Cloud service account key (use GOOGLE_SERVICE_ACCOUNT_JSON in .env)
+kwr-ips-bknbr-*.json
+
 # local db and uploads (optional: remove if you want to track)
 prisma/*.db
 /public/uploads/*
