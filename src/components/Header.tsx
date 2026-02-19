@@ -9,8 +9,14 @@ type HeaderProps = {
 
 export default function Header({ variant = "default", homeHref = "/" }: HeaderProps) {
   const showContact = homeHref === "/";
+  const borderGradient =
+    homeHref === "/g"
+      ? "linear-gradient(to right, #39d2f8, #306160)"
+      : homeHref === "/v"
+        ? "linear-gradient(to right, #1991d3, #0923a4)"
+        : null;
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-black/5">
+    <header className={`sticky top-0 z-50 bg-white ${borderGradient ? "" : "border-b border-black/5"}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="h-14 flex items-center justify-between gap-2">
           <Link href={homeHref} className="flex items-center shrink min-w-0">
@@ -19,7 +25,7 @@ export default function Header({ variant = "default", homeHref = "/" }: HeaderPr
               alt="投資のiPSマーケット.com"
               width={200}
               height={40}
-              className="h-8 sm:h-10 w-auto max-w-[140px] sm:max-w-none object-contain object-left"
+              className="h-8 sm:h-10 w-auto max-w-[250px] sm:max-w-none object-contain object-left"
               priority
             />
           </Link>
@@ -43,6 +49,13 @@ export default function Header({ variant = "default", homeHref = "/" }: HeaderPr
           )}
         </div>
       </div>
+      {borderGradient && (
+        <div
+          className="h-px w-full shrink-0"
+          style={{ background: borderGradient }}
+          aria-hidden
+        />
+      )}
     </header>
   );
 }

@@ -364,7 +364,10 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
     const u = buttonUrl.trim();
     if (!t || !u) return;
     setButtonDialogOpen(false);
-    const inner = t.split("|").map((s) => escHtml(s)).join('<br class="sp-only">');
+    const inner = t
+      .split("||")
+      .map((seg) => seg.split("|").map((s) => escHtml(s)).join('<br class="sp-only">'))
+      .join("<br>");
     const targetAttr = buttonNewTab ? ' target="_blank" rel="noopener noreferrer"' : "";
     let btnClass = "btn";
     try {
@@ -614,7 +617,7 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
             <div className="bg-white rounded-lg border border-slate-200 shadow-xl p-5 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
               <p className="text-sm font-semibold text-slate-800 mb-3">{editingButtonAnchorRef.current ? "ボタンリンクを編集" : "ボタンリンク"}</p>
               <input type="text" value={buttonText} onChange={(e) => setButtonText(e.target.value)} placeholder="ボタンテキスト" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-blue-500" />
-              <p className="text-xs text-slate-500 mb-2">「|」でスマホのみその位置で改行</p>
+              <p className="text-xs text-slate-500 mb-2">「|」でスマホのみ改行、「||」でPC・スマホ両方で改行</p>
               <input type="url" value={buttonUrl} onChange={(e) => setButtonUrl(e.target.value)} placeholder="リンク先URL" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-blue-500" />
               <label className="flex items-center gap-2 mb-4 cursor-pointer">
                 <input type="checkbox" checked={buttonNewTab} onChange={(e) => setButtonNewTab(e.target.checked)} className="rounded border-slate-300" />

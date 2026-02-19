@@ -110,11 +110,14 @@ a.btn.btn-c.btn-c-header--full:hover {
   font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, "sans-serif";
 }
 .article-detail [data-article-content] h2 {
+  box-sizing: inherit;
   font-size: 24px;
   font-weight: 800;
-  margin-top: 2rem;
-  margin-bottom: 0.75rem;
+  margin-top: 28px;
+  margin-bottom: 28px;
+  padding-top: 0;
   padding-bottom: 15px;
+  line-height: 29.6px;
   border-bottom: 2px solid #eee;
 }
 .article-detail [data-article-content] h3 {
@@ -242,7 +245,7 @@ a.btn.btn-c.btn-c-header--full:hover {
   overflow-wrap: break-word;
 }
 
-/* スマホ: 横幅いっぱい・min-width 解除 */
+/* スマホ: 横幅いっぱい・min-width 解除・ボタンpadding */
 @media (max-width: 768px) {
   .prose .btn,
   .prose a.btn,
@@ -253,13 +256,27 @@ a.btn.btn-c.btn-c-header--full:hover {
     padding: 1rem 1.25rem !important;
     box-sizing: border-box;
   }
+  .prose a.btn-c,
+  .prose a.btn.btn-c,
+  .prose a.btn-k,
+  .prose a.btn.btn-k,
+  .prose a.btn-r,
+  .prose a.btn.btn-r,
+  .prose a.btn-g,
+  .prose a.btn.btn-g,
+  .prose a.btn-o,
+  .prose a.btn.btn-o,
+  .prose a.btn-p,
+  .prose a.btn.btn-p {
+    padding: 1rem 2rem !important;
+  }
 }
 
 /* ---- 青色グラデーション (btn-c) ---- */
 .prose a.btn-c,
 .prose a.btn.btn-c {
   font-size: 1rem !important;
-  padding: 1rem 1.5rem 1rem 1.5rem !important;
+  padding: 1.5rem 2.2rem !important;
   min-width: 350px;
   color: #fff !important;
   border-radius: 100vh !important;
@@ -288,7 +305,7 @@ a.btn.btn-c.btn-c-header--full:hover {
 .prose a.btn-k,
 .prose a.btn.btn-k {
   font-size: 1rem !important;
-  padding: 1rem 1.5rem 1rem 1.5rem !important;
+  padding: 1.5rem 2.2rem !important;
   min-width: 350px;
   color: #fff !important;
   border-radius: 100vh !important;
@@ -317,7 +334,7 @@ a.btn.btn-c.btn-c-header--full:hover {
 .prose a.btn-r,
 .prose a.btn.btn-r {
   font-size: 1rem !important;
-  padding: 1rem 1.5rem 1rem 1.5rem !important;
+  padding: 1.5rem 2.2rem !important;
   min-width: 350px;
   color: #fff !important;
   border-radius: 100vh !important;
@@ -346,7 +363,7 @@ a.btn.btn-c.btn-c-header--full:hover {
 .prose a.btn-g,
 .prose a.btn.btn-g {
   font-size: 1rem !important;
-  padding: 1rem 1.5rem 1rem 1.5rem !important;
+  padding: 1.5rem 2.2rem !important;
   min-width: 350px;
   color: #fff !important;
   border-radius: 100vh !important;
@@ -375,7 +392,7 @@ a.btn.btn-c.btn-c-header--full:hover {
 .prose a.btn-o,
 .prose a.btn.btn-o {
   font-size: 1rem !important;
-  padding: 1rem 1.5rem 1rem 1.5rem !important;
+  padding: 1.5rem 2.2rem !important;
   min-width: 350px;
   color: #fff !important;
   border-radius: 100vh !important;
@@ -404,7 +421,7 @@ a.btn.btn-c.btn-c-header--full:hover {
 .prose a.btn-p,
 .prose a.btn.btn-p {
   font-size: 1rem !important;
-  padding: 1rem 1.5rem 1rem 1.5rem !important;
+  padding: 1.5rem 2.2rem !important;
   min-width: 350px;
   color: #fff !important;
   border-radius: 100vh !important;
