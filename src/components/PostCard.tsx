@@ -39,7 +39,7 @@ export default function PostCard({ post, variant = "grid" }: PostCardProps) {
             </h2>
             <div className="flex items-center gap-2 mt-3">
               {post.writer?.avatarUrl ? (
-                <Image src={post.writer.avatarUrl} alt={post.writer.name} width={28} height={28} className="rounded-full object-cover ring-2 ring-white/50" />
+                <Image src={post.writer.avatarUrl} alt={post.writer.name} width={28} height={28} className="rounded-full object-cover" />
               ) : post.writer ? (
                 <div className="w-7 h-7 rounded-full bg-white/30 flex items-center justify-center">
                   <span className="text-xs font-bold text-white">{post.writer.name.charAt(0)}</span>

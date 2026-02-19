@@ -9,22 +9,24 @@ datasource db {
 }
 
 model Post {
-  id          Int        @id @default(autoincrement())
-  title       String
-  slug        String     @unique
-  content     String
-  excerpt     String?
-  eyecatch    String?
-  published   Boolean    @default(false)
-  isPickup    Boolean    @default(false)
-  scheduledAt DateTime?
-  views       Int        @default(0)
-  writerId    Int?
-  writer      Writer?    @relation(fields: [writerId], references: [id])
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  clicks      Click[]
-  pageViews   PageView[]
+  id             Int        @id @default(autoincrement())
+  title          String
+  slug           String     @unique
+  content        String
+  excerpt        String?
+  eyecatch       String?
+  published      Boolean    @default(false)
+  isPickup       Boolean    @default(false)
+  showForGeneral Boolean    @default(true)
+  showForFull    Boolean    @default(true)
+  scheduledAt    DateTime?
+  views          Int        @default(0)
+  writerId       Int?
+  writer         Writer?    @relation(fields: [writerId], references: [id])
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  clicks         Click[]
+  pageViews      PageView[]
 
   @@index([published, createdAt])
   @@map("posts")

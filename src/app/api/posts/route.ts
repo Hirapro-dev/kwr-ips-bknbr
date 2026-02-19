@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
   const all = searchParams.get("all") === "true";
   const sort = searchParams.get("sort") || "newest";
   const pickup = searchParams.get("pickup") === "true";
+  const forMember = searchParams.get("for") as string | null; // "general" | "full"
   const q = searchParams.get("q")?.trim() || "";
 
   // 予約投稿の自動公開チェック
@@ -22,6 +23,8 @@ export async function GET(request: NextRequest) {
 
   const where: Prisma.PostWhereInput = all ? {} : { published: true };
   if (pickup) (where as Prisma.PostWhereInput).isPickup = true;
+  if (forMember === "general") (where as Prisma.PostWhereInput).showForGeneral = true;
+  if (forMember === "full") (where as Prisma.PostWhereInput).showForFull = true;
   if (q) {
     (where as Prisma.PostWhereInput).OR = [
       { title: { contains: q, mode: "insensitive" } },
@@ -47,6 +50,8 @@ export async function GET(request: NextRequest) {
     eyecatch: true,
     published: true,
     isPickup: true,
+    showForGeneral: true,
+    showForFull: true,
     views: true,
     scheduledAt: true,
     createdAt: true,
@@ -84,7 +89,7 @@ export async function GET(request: NextRequest) {
       totalPages: Math.ceil(total / limit),
     });
   } catch {
-    // isPickup カラムがまだない（マイグレーション未実行）場合は isPickup なしで再取得
+    // isPickup / showForGeneral / showForFull カラムがまだない場合はフィルタなしで再取得
     const whereFallback: Prisma.PostWhereInput = all ? {} : { published: true };
     if (q) {
       whereFallback.OR = [
@@ -103,7 +108,7 @@ export async function GET(request: NextRequest) {
       }),
       prisma.post.count({ where: whereFallback }),
     ]);
-    const postsWithPickup = posts.map((p) => ({ ...p, isPickup: false }));
+    const postsWithPickup = posts.map((p) => ({ ...p, isPickup: false, showForGeneral: true, showForFull: true }));
     return NextResponse.json({
       posts: postsWithPickup,
       total,
@@ -119,7 +124,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { title, content, excerpt, eyecatch, published, scheduledAt, writerId, isPickup } = body;
+    const { title, content, excerpt, eyecatch, published, scheduledAt, writerId, isPickup, showForGeneral, showForFull } = body;
 
     const slug = generateSlug();
     const isScheduled = scheduledAt && new Date(scheduledAt) > new Date();
@@ -133,6 +138,8 @@ export async function POST(request: NextRequest) {
         eyecatch: eyecatch || null,
         published: isScheduled ? false : (published ?? false),
         isPickup: isPickup === true,
+        showForGeneral: showForGeneral !== false,
+        showForFull: showForFull !== false,
         scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
         writerId: writerId ? parseInt(writerId) : null,
       },

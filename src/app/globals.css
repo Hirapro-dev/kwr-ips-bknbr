@@ -220,14 +220,16 @@ a.btn.btn-c .btn-c-icon svg {
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
 }
 .prose a.btn-c::before {
-  font-family: "Font Awesome 5 Free";
-  font-weight: 900;
-  font-size: 1rem;
-  line-height: 1;
+  content: "";
   position: absolute;
-  top: calc(50% - 0.8rem);
+  top: calc(50% - 0.5rem);
   right: 1rem;
-  content: "\f30b";
+  width: 1rem;
+  height: 1rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cline x1='10' y1='14' x2='21' y2='3'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 .prose a.btn-c:hover {
   transform: scale(1.05);
@@ -247,14 +249,16 @@ a.btn.btn-c .btn-c-icon svg {
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
 }
 .prose a.btn-k::before {
-  font-family: "Font Awesome 5 Free";
-  font-weight: 900;
-  font-size: 1rem;
-  line-height: 1;
+  content: "";
   position: absolute;
-  top: calc(50% - 0.8rem);
+  top: calc(50% - 0.5rem);
   right: 1rem;
-  content: "\f30b";
+  width: 1rem;
+  height: 1rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cline x1='10' y1='14' x2='21' y2='3'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 .prose a.btn-k:hover {
   transform: scale(1.05);
@@ -274,14 +278,16 @@ a.btn.btn-c .btn-c-icon svg {
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
 }
 .prose a.btn-r::before {
-  font-family: "Font Awesome 5 Free";
-  font-weight: 900;
-  font-size: 1rem;
-  line-height: 1;
+  content: "";
   position: absolute;
-  top: calc(50% - 0.8rem);
+  top: calc(50% - 0.5rem);
   right: 1rem;
-  content: "\f30b";
+  width: 1rem;
+  height: 1rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cline x1='10' y1='14' x2='21' y2='3'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 .prose a.btn-r:hover {
   transform: scale(1.05);
@@ -301,14 +307,16 @@ a.btn.btn-c .btn-c-icon svg {
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
 }
 .prose a.btn-g::before {
-  font-family: "Font Awesome 5 Free";
-  font-weight: 900;
-  font-size: 1rem;
-  line-height: 1;
+  content: "";
   position: absolute;
-  top: calc(50% - 0.8rem);
+  top: calc(50% - 0.5rem);
   right: 1rem;
-  content: "\f30b";
+  width: 1rem;
+  height: 1rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cline x1='10' y1='14' x2='21' y2='3'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 .prose a.btn-g:hover {
   transform: scale(1.05);
@@ -328,14 +336,16 @@ a.btn.btn-c .btn-c-icon svg {
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
 }
 .prose a.btn-o::before {
-  font-family: "Font Awesome 5 Free";
-  font-weight: 900;
-  font-size: 1rem;
-  line-height: 1;
+  content: "";
   position: absolute;
-  top: calc(50% - 0.8rem);
+  top: calc(50% - 0.5rem);
   right: 1rem;
-  content: "\f30b";
+  width: 1rem;
+  height: 1rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cline x1='10' y1='14' x2='21' y2='3'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 .prose a.btn-o:hover {
   transform: scale(1.05);
@@ -355,14 +365,16 @@ a.btn.btn-c .btn-c-icon svg {
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
 }
 .prose a.btn-p::before {
-  font-family: "Font Awesome 5 Free";
-  font-weight: 900;
-  font-size: 1rem;
-  line-height: 1;
+  content: "";
   position: absolute;
-  top: calc(50% - 0.8rem);
+  top: calc(50% - 0.5rem);
   right: 1rem;
-  content: "\f30b";
+  width: 1rem;
+  height: 1rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cline x1='10' y1='14' x2='21' y2='3'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 .prose a.btn-p:hover {
   transform: scale(1.05);

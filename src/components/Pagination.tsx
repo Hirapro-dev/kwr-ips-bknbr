@@ -6,9 +6,10 @@ import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 type PaginationProps = {
   currentPage: number;
   totalPages: number;
+  basePath?: string;
 };
 
-export default function Pagination({ currentPage, totalPages }: PaginationProps) {
+export default function Pagination({ currentPage, totalPages, basePath = "/" }: PaginationProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -17,7 +18,7 @@ export default function Pagination({ currentPage, totalPages }: PaginationProps)
   const goToPage = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", page.toString());
-    router.push(`/?${params.toString()}`);
+    router.push(`${basePath}?${params.toString()}`);
   };
 
   const pages: (number | string)[] = [];

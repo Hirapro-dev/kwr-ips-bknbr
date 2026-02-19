@@ -40,6 +40,8 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
   const [writers, setWriters] = useState<Writer[]>([]);
   const [writerId, setWriterId] = useState("");
   const [isPickup, setIsPickup] = useState(false);
+  const [showForGeneral, setShowForGeneral] = useState(true);
+  const [showForFull, setShowForFull] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -59,6 +61,8 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
       if (res.ok) {
         const post = await res.json();
         setTitle(post.title); setContent(post.content); setEyecatch(post.eyecatch || ""); setPublished(post.published); setIsPickup(post.isPickup ?? false);
+        setShowForGeneral(post.showForGeneral !== false);
+        setShowForFull(post.showForFull !== false);
         if (post.scheduledAt) { setScheduledAt(new Date(post.scheduledAt).toISOString().slice(0, 16)); setShowSchedule(true); }
         if (post.writerId) setWriterId(String(post.writerId));
       } else {
@@ -307,7 +311,7 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
       const finalContent = mode === "visual" && editorRef.current ? editorRef.current.innerHTML : content;
       const res = await fetch(`/api/posts/${id}`, {
         method: "PUT", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content: finalContent, eyecatch: eyecatch || null, published: shouldPublish ?? published, isPickup, scheduledAt: scheduledAt || null, writerId: writerId || null }),
+        body: JSON.stringify({ title, content: finalContent, eyecatch: eyecatch || null, published: shouldPublish ?? published, isPickup, showForGeneral, showForFull, scheduledAt: scheduledAt || null, writerId: writerId || null }),
       });
       if (res.ok) router.push("/admin/dashboard");
       else { const d = await res.json(); alert(d.error || "保存に失敗"); }
@@ -388,6 +392,20 @@ export default function EditPost({ params }: { params: Promise<{ id: string }> }
             <input type="checkbox" checked={isPickup} onChange={(e) => setIsPickup(e.target.checked)} className="rounded border-slate-300 text-amber-500 focus:ring-amber-400" />
             <span className="text-sm font-medium text-slate-700">人気記事に設定する（トップの PickUp に表示）</span>
           </label>
+        </div>
+
+        <div className="mb-6">
+          <p className="text-xs font-semibold text-slate-500 mb-2">表示先会員</p>
+          <div className="flex flex-wrap gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={showForGeneral} onChange={(e) => setShowForGeneral(e.target.checked)} className="rounded border-slate-300 text-blue-500 focus:ring-blue-400" />
+              <span className="text-sm font-medium text-slate-700">一般会員（/g/）</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={showForFull} onChange={(e) => setShowForFull(e.target.checked)} className="rounded border-slate-300 text-blue-500 focus:ring-blue-400" />
+              <span className="text-sm font-medium text-slate-700">正会員（/v/）</span>
+            </label>
+          </div>
         </div>
 
         <div className="mb-6">

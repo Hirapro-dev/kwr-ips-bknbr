@@ -31,10 +31,10 @@ export async function GET(
       const post = await prisma.post.findUnique({ where: { slug: id }, include: { writer: true } });
       if (!post) return NextResponse.json({ error: "記事が見つかりません" }, { status: 404 });
       return NextResponse.json(post);
-    } catch {
-      const post = await prisma.post.findUnique({ where: { slug: id }, select: selectWithoutPickup });
+  } catch {
+    const post = await prisma.post.findUnique({ where: { slug: id }, select: selectWithoutPickup });
       if (!post) return NextResponse.json({ error: "記事が見つかりません" }, { status: 404 });
-      return NextResponse.json({ ...post, isPickup: false });
+      return NextResponse.json({ ...post, isPickup: false, showForGeneral: true, showForFull: true });
     }
   }
 
@@ -43,10 +43,10 @@ export async function GET(
     if (!post) return NextResponse.json({ error: "記事が見つかりません" }, { status: 404 });
     return NextResponse.json(post);
   } catch {
-    // isPickup カラムがまだない（マイグレーション未実行）時のフォールバック
+    // 旧カラムがない時のフォールバック
     const post = await prisma.post.findUnique({ where: { id: numId }, select: selectWithoutPickup });
     if (!post) return NextResponse.json({ error: "記事が見つかりません" }, { status: 404 });
-    return NextResponse.json({ ...post, isPickup: false });
+    return NextResponse.json({ ...post, isPickup: false, showForGeneral: true, showForFull: true });
   }
 }
 
@@ -60,7 +60,7 @@ export async function PUT(
   const { id } = await params;
   try {
     const body = await request.json();
-    const { title, content, excerpt, eyecatch, published, scheduledAt, writerId, isPickup } = body;
+    const { title, content, excerpt, eyecatch, published, scheduledAt, writerId, isPickup, showForGeneral, showForFull } = body;
 
     const isScheduled = scheduledAt && new Date(scheduledAt) > new Date();
 
@@ -71,12 +71,16 @@ export async function PUT(
       eyecatch?: string | null;
       published?: boolean;
       isPickup?: boolean;
+      showForGeneral?: boolean;
+      showForFull?: boolean;
       scheduledAt?: Date | null;
       writerId?: number | null;
     } = {
       eyecatch: eyecatch || undefined,
       published: isScheduled ? false : (published ?? undefined),
       isPickup: isPickup !== undefined ? !!isPickup : undefined,
+      showForGeneral: showForGeneral !== undefined ? !!showForGeneral : undefined,
+      showForFull: showForFull !== undefined ? !!showForFull : undefined,
       scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
       writerId: writerId !== undefined ? (writerId ? parseInt(writerId) : null) : undefined,
     };
@@ -94,15 +98,19 @@ export async function PUT(
       });
       return NextResponse.json(post);
     } catch {
-      // isPickup カラムがまだない（マイグレーション未実行）時は isPickup を外して再試行
-      const { isPickup: _omit, ...dataWithoutPickup } = data;
+      // 旧カラムがない時は該当フィールドを外して再試行
+      const { isPickup: _o1, showForGeneral: _o2, showForFull: _o3, ...dataFallback } = data;
       const post = await prisma.post.update({
         where: { id: parseInt(id) },
-        data: dataWithoutPickup,
+        data: dataFallback,
         select: selectWithoutPickup,
       });
-      // カラムがなくてもリクエストの isPickup を返し、UIでチェック状態を維持
-      return NextResponse.json({ ...post, isPickup: isPickup !== undefined ? !!isPickup : false });
+      return NextResponse.json({
+        ...post,
+        isPickup: isPickup !== undefined ? !!isPickup : false,
+        showForGeneral: showForGeneral !== undefined ? !!showForGeneral : true,
+        showForFull: showForFull !== undefined ? !!showForFull : true,
+      });
     }
   } catch {
     return NextResponse.json({ error: "記事の更新に失敗しました" }, { status: 500 });
