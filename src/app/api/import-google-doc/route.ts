@@ -121,8 +121,7 @@ export async function POST(request: NextRequest) {
           const contentUri = inline?.inlineObjectProperties?.embeddedObject?.imageProperties?.contentUri;
           if (contentUri) {
             try {
-              const tokenRes = await auth.getAccessToken();
-              const token = tokenRes?.token ?? null;
+              const token = await auth.getAccessToken();
               const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
               const imageRes = await fetch(contentUri, { headers });
               if (imageRes.ok) {
