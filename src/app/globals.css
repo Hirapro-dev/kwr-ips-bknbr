@@ -30,6 +30,11 @@ body {
   line-height: 1.8;
 }
 
+/* トップページ：テキストをヒラギノに統一 */
+.page-top {
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, "sans-serif";
+}
+
 /* ============================
    ヘッダー用グラデーションボタン (.btn.btn-c)
    ヘッダー h-14 に合わせたサイズ

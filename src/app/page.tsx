@@ -134,7 +134,7 @@ export default async function Home({
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-white page-top">
       <Header />
 
       <main className="flex-1">
