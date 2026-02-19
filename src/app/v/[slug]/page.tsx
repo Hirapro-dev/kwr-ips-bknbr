@@ -121,7 +121,7 @@ export default async function VPostPage({
 
       <main className="flex-1 max-w-3xl mx-auto px-4 sm:px-6 py-10 w-full">
 
-        <article>
+        <article className="article-detail">
           {post.eyecatch && (
             <div className="aspect-[16/9] relative rounded-sm overflow-hidden mb-8">
               <Image
@@ -135,7 +135,7 @@ export default async function VPostPage({
             </div>
           )}
 
-          <h1 className="text-2xl md:text-3xl font-black text-black mb-2 leading-tight">
+          <h1 className="text-black mb-2 leading-tight">
             {post.title}
           </h1>
 

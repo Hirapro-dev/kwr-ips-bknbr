@@ -96,6 +96,45 @@ a.btn.btn-c.btn-c-header--full:hover {
   line-height: 1.5;
   padding: 15px 0;
 }
+
+/* 記事詳細ページ：タイトル・見出し・本文のフォント統一 */
+.article-detail {
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, "sans-serif";
+}
+.article-detail > h1 {
+  font-size: 30px;
+  font-weight: 800;
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, "sans-serif";
+}
+.article-detail [data-article-content] {
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, "sans-serif";
+}
+.article-detail [data-article-content] h2 {
+  font-size: 24px;
+  font-weight: 800;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--color-primary-light);
+}
+.article-detail [data-article-content] h3 {
+  font-size: 22px;
+  font-weight: 800;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.article-detail [data-article-content] h4 {
+  font-size: 20px;
+  font-weight: 800;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+.article-detail [data-article-content] p {
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.5;
+  padding: 15px 0;
+}
 .prose ul, .prose ol { margin-bottom: 1rem; padding-left: 1.5rem; }
 .prose ul { list-style: disc; }
 .prose ol { list-style: decimal; }
