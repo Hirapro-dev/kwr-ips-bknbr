@@ -52,16 +52,15 @@ export async function GET(request: NextRequest) {
         groupBy = "month";
       }
 
-      type ViewWhere = { postId: number; createdAt?: { gte: Date }; source?: string | null | { in: (string | null)[] } };
-      const viewWhere: ViewWhere = {
+      const viewWhere = {
         postId: id,
         ...(dateFilter ? { createdAt: { gte: dateFilter } } : {}),
+        ...(viewSource === "public"
+          ? { OR: [{ source: "public" }, { source: null }] }
+          : viewSource === "general" || viewSource === "full"
+            ? { source: viewSource }
+            : {}),
       };
-      if (viewSource === "public") {
-        viewWhere.source = { in: ["public", null] };
-      } else if (viewSource === "general" || viewSource === "full") {
-        viewWhere.source = viewSource;
-      }
 
       const views = await prisma.pageView.findMany({
         where: viewWhere,
