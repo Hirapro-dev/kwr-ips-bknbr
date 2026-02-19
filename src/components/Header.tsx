@@ -10,7 +10,7 @@ type HeaderProps = {
 export default function Header({ variant = "default", homeHref = "/" }: HeaderProps) {
   const showContact = homeHref === "/";
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-[#eee]">
+    <header className="sticky top-0 z-50 bg-white border-b border-[#bbb]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="h-14 flex items-center justify-between gap-2">
           <Link href={homeHref} className="flex items-center shrink min-w-0">

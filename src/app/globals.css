@@ -111,14 +111,14 @@ a.btn.btn-c.btn-c-header--full:hover {
 }
 .article-detail [data-article-content] h2 {
   box-sizing: inherit;
-  font-size: 24px;
-  font-weight: 800;
-  margin-top: 28px;
-  margin-bottom: 28px;
-  padding-top: 0;
-  padding-bottom: 15px;
-  line-height: 29.6px;
-  border-bottom: 2px solid #eee;
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  margin-top: 28px !important;
+  margin-bottom: 28px !important;
+  padding-top: 0 !important;
+  padding-bottom: 15px !important;
+  line-height: 29.6px !important;
+  border-bottom: 2px solid #bbb !important;
 }
 .article-detail [data-article-content] h3 {
   font-size: 22px;
@@ -245,7 +245,7 @@ a.btn.btn-c.btn-c-header--full:hover {
   overflow-wrap: break-word;
 }
 
-/* スマホ: 横幅いっぱい・min-width 解除・ボタンpadding */
+/* スマホ: 横幅いっぱい・min-width 解除 */
 @media (max-width: 768px) {
   .prose .btn,
   .prose a.btn,
@@ -255,20 +255,6 @@ a.btn.btn-c.btn-c-header--full:hover {
     min-width: 0 !important;
     padding: 1rem 1.25rem !important;
     box-sizing: border-box;
-  }
-  .prose a.btn-c,
-  .prose a.btn.btn-c,
-  .prose a.btn-k,
-  .prose a.btn.btn-k,
-  .prose a.btn-r,
-  .prose a.btn.btn-r,
-  .prose a.btn-g,
-  .prose a.btn.btn-g,
-  .prose a.btn-o,
-  .prose a.btn.btn-o,
-  .prose a.btn-p,
-  .prose a.btn.btn-p {
-    padding: 1rem 2rem !important;
   }
 }
 
@@ -444,6 +430,24 @@ a.btn.btn-c.btn-c-header--full:hover {
   transform: scale(1.05);
   color: #fff !important;
   opacity: 0.9;
+}
+
+/* スマホ: 各色ボタンのpadding（上記の.btn-c等より後に書いて効かせる） */
+@media (max-width: 768px) {
+  .prose a.btn-c,
+  .prose a.btn.btn-c,
+  .prose a.btn-k,
+  .prose a.btn.btn-k,
+  .prose a.btn-r,
+  .prose a.btn.btn-r,
+  .prose a.btn-g,
+  .prose a.btn.btn-g,
+  .prose a.btn-o,
+  .prose a.btn.btn-o,
+  .prose a.btn-p,
+  .prose a.btn.btn-p {
+    padding: 1rem 2rem !important;
+  }
 }
 
 /* ---- スマホ改行ユーティリティ ---- */
